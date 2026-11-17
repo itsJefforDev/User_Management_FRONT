@@ -1,0 +1,37 @@
+<app-main-layout appTitle="Panel de Usuario (ROLE_USER)">
+  <div class="space-y-6">
+    <!-- Blank/Placeholder header -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-slate-900">Panel de Usuario</h1>
+            <app-badge variant="info">ROLE_USER</app-badge>
+          </div>
+          <p class="text-sm text-slate-500 mt-1">
+            Sesión activa como: <strong class="text-slate-800">{{ authService.currentUser()?.email || 'user@empresa.com' }}</strong>
+          </p>
+        </div>
+
+        <div>
+          <app-button variant="ghost" (clicked)="handleLogout()">
+            Cerrar Sesión
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blank placeholder section -->
+    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center bg-slate-50/50">
+      <div class="mx-auto h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 mb-3">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-slate-800">Espacio de Trabajo del Usuario</h3>
+      <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        Esta página se deja en blanco intencionalmente como placeholder para la vista de usuario estándar.
+      </p>
+    </div>
+  </div>
+</app-main-layout>

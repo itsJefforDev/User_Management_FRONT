@@ -1,0 +1,729 @@
+<div class="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+  <!-- Dynamic Header / Navbar -->
+  <app-navbar title="User Management" />
+
+  <main class="flex-1">
+    <!-- =========================================================================
+         1. HERO SECTION
+         ========================================================================= -->
+    <section class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-32 bg-linear-to-b from-white via-indigo-50/20 to-slate-50 border-b border-slate-200/60">
+      <!-- Background Ambient Blur Circles -->
+      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-linear-to-tr from-indigo-200/40 via-purple-100/30 to-sky-200/40 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-subtle"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto space-y-6 animate-fade-in">
+          <!-- Release / Version Badge -->
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold shadow-xs">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+            </span>
+            <span>Plataforma Empresarial 2026 &bull; Spring Boot 3 + Angular Standalone</span>
+          </div>
+
+          <!-- Hero Headline -->
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+            Control y Gestión Inteligente de
+            <span class="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 via-indigo-700 to-purple-600">
+              Identidades y Accesos
+            </span>
+          </h1>
+
+          <!-- Hero Description -->
+          <p class="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+            Administra usuarios corporativos, control de roles granular <strong class="text-slate-800 font-semibold">RBAC</strong>, verificación de cuentas en tiempo real y autenticación con tokens <strong class="text-slate-800 font-semibold">JWT</strong> con una experiencia visual fluida y reactiva.
+          </p>
+
+          <!-- Action Buttons / CTA -->
+          <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            @if (!isAuthenticated()) {
+              <a
+                routerLink="/register"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-smooth group cursor-pointer"
+              >
+                <span>Comenzar Ahora &mdash; Crear Cuenta</span>
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+
+              <a
+                routerLink="/login"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-xl shadow-xs transition-smooth cursor-pointer"
+              >
+                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <span>Iniciar Sesión</span>
+              </a>
+            } @else {
+              <!-- Logged-in CTAs -->
+              <button
+                type="button"
+                (click)="goToDashboard()"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl shadow-md shadow-indigo-200 hover:shadow-indigo-300 transition-smooth cursor-pointer"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Ir a Mi Dashboard ({{ userName() }})</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="goToUsersManagement()"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-xl shadow-xs transition-smooth cursor-pointer"
+              >
+                <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span>Gestión de Usuarios</span>
+              </button>
+            }
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Verificación en 2 pasos</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Tokens JWT Bearer</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Roles ADMIN y ROLE_USER</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================================
+             HERO APP PREVIEW / MOCKUP SHOWCASE
+             ========================================================================= -->
+        <div class="mt-14 max-w-5xl mx-auto relative animate-slide-up">
+          <!-- Glow accent underneath -->
+          <div class="absolute -inset-1 bg-linear-to-r from-indigo-500 to-purple-600 rounded-3xl blur-xl opacity-20 group-hover:opacity-30 transition-smooth"></div>
+
+          <!-- Mockup Window -->
+          <div class="relative bg-white rounded-2xl border border-slate-200/90 shadow-2xl shadow-indigo-900/10 overflow-hidden">
+            <!-- Window Titlebar -->
+            <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+              </div>
+              <div class="bg-slate-800 px-4 py-1 rounded-md text-[11px] font-mono text-slate-300 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>https://app.usermanagement.local/dashboard</span>
+              </div>
+              <div class="text-[11px] font-medium text-slate-400">
+                v2.0 Standalone
+              </div>
+            </div>
+
+            <!-- Mockup Content: Live KPI Cards & Users Preview -->
+            <div class="p-6 sm:p-8 bg-slate-50/70 space-y-6">
+              <!-- Mini KPI Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500">Usuarios Registrados</span>
+                    <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="text-2xl font-bold text-slate-900 mt-2">1,248</div>
+                  <div class="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                    <span>&uarr; 14%</span> frente al mes anterior
+                  </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500">Sesiones Activas</span>
+                    <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="text-2xl font-bold text-slate-900 mt-2">84</div>
+                  <div class="text-[11px] text-slate-500 font-medium mt-1">
+                    Cero accesos no autorizados
+                  </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500">Nivel de Seguridad</span>
+                    <span class="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="text-2xl font-bold text-slate-900 mt-2">100%</div>
+                  <div class="text-[11px] text-indigo-600 font-medium mt-1">
+                    Tokens JWT SHA-256
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Sample Table -->
+              <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Directorio de Usuarios Activos</h4>
+                  </div>
+                  <span class="text-[11px] text-slate-400">Actualización en tiempo real</span>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                  @for (user of previewUsers(); track user.id) {
+                    <div class="px-4 py-3 flex items-center justify-between hover:bg-slate-50/60 transition-smooth">
+                      <div class="flex items-center gap-3">
+                        <app-avatar [name]="user.name" size="sm" />
+                        <div>
+                          <div class="text-xs font-semibold text-slate-800">{{ user.name }}</div>
+                          <div class="text-[11px] text-slate-500">{{ user.email }}</div>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <app-badge [variant]="user.role === 'Admin' ? 'danger' : 'info'" size="sm">
+                          {{ user.role }}
+                        </app-badge>
+                        <span class="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          {{ user.status }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         2. METRICS & IMPACT BAR
+         ========================================================================= -->
+    <section class="py-12 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div class="space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-indigo-600 tracking-tight">99.99%</div>
+            <div class="text-xs sm:text-sm font-semibold text-slate-800">Disponibilidad del Servicio</div>
+            <div class="text-xs text-slate-500">Arquitectura de alta tolerancia</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-indigo-600 tracking-tight">&lt; 35ms</div>
+            <div class="text-xs sm:text-sm font-semibold text-slate-800">Latencia de Verificación</div>
+            <div class="text-xs text-slate-500">Respuestas REST optimizadas</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-indigo-600 tracking-tight">100% RBAC</div>
+            <div class="text-xs sm:text-sm font-semibold text-slate-800">Control de Accesos</div>
+            <div class="text-xs text-slate-500">Permisos por rol sin excepciones</div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-indigo-600 tracking-tight">2 Pasos</div>
+            <div class="text-xs sm:text-sm font-semibold text-slate-800">Activación de Cuenta</div>
+            <div class="text-xs text-slate-500">Token enviado por email</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         3. INTERACTIVE FEATURE SHOWCASE (TABS)
+         ========================================================================= -->
+    <section id="caracteristicas" class="py-20 lg:py-28 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
+          <app-badge variant="info">Módulos de la Plataforma</app-badge>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Diseñado para la Seguridad y Productividad
+          </h2>
+          <p class="text-sm sm:text-base text-slate-600">
+            Cada aspecto del sistema está construido con estándares modernos para garantizar fiabilidad y una experiencia de usuario sin fricciones.
+          </p>
+        </div>
+
+        <!-- Interactive Tab Navigation -->
+        <div class="flex flex-wrap justify-center gap-2 mb-10">
+          <button
+            type="button"
+            (click)="setTab('rbac')"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-smooth cursor-pointer flex items-center gap-2"
+            [class.bg-indigo-600]="activeTab() === 'rbac'"
+            [class.text-white]="activeTab() === 'rbac'"
+            [class.shadow-md]="activeTab() === 'rbac'"
+            [class.bg-white]="activeTab() !== 'rbac'"
+            [class.text-slate-700]="activeTab() !== 'rbac'"
+            [class.border]="activeTab() !== 'rbac'"
+            [class.border-slate-200]="activeTab() !== 'rbac'"
+          >
+            <span>🛡️ Control RBAC</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="setTab('jwt')"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-smooth cursor-pointer flex items-center gap-2"
+            [class.bg-indigo-600]="activeTab() === 'jwt'"
+            [class.text-white]="activeTab() === 'jwt'"
+            [class.shadow-md]="activeTab() === 'jwt'"
+            [class.bg-white]="activeTab() !== 'jwt'"
+            [class.text-slate-700]="activeTab() !== 'jwt'"
+            [class.border]="activeTab() !== 'jwt'"
+            [class.border-slate-200]="activeTab() !== 'jwt'"
+          >
+            <span>🔑 Tokens JWT</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="setTab('verification')"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-smooth cursor-pointer flex items-center gap-2"
+            [class.bg-indigo-600]="activeTab() === 'verification'"
+            [class.text-white]="activeTab() === 'verification'"
+            [class.shadow-md]="activeTab() === 'verification'"
+            [class.bg-white]="activeTab() !== 'verification'"
+            [class.text-slate-700]="activeTab() !== 'verification'"
+            [class.border]="activeTab() !== 'verification'"
+            [class.border-slate-200]="activeTab() !== 'verification'"
+          >
+            <span>✉️ Verificación de Cuenta</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="setTab('audit')"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-smooth cursor-pointer flex items-center gap-2"
+            [class.bg-indigo-600]="activeTab() === 'audit'"
+            [class.text-white]="activeTab() === 'audit'"
+            [class.shadow-md]="activeTab() === 'audit'"
+            [class.bg-white]="activeTab() !== 'audit'"
+            [class.text-slate-700]="activeTab() !== 'audit'"
+            [class.border]="activeTab() !== 'audit'"
+            [class.border-slate-200]="activeTab() !== 'audit'"
+          >
+            <span>⚡ Arquitectura Reactiva</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Tab Panel Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-8 sm:p-12 shadow-xl shadow-slate-200/50 max-w-4xl mx-auto animate-fade-in">
+          @if (activeTab() === 'rbac') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div class="space-y-4">
+                <app-badge variant="danger">Role-Based Access Control</app-badge>
+                <h3 class="text-2xl font-bold text-slate-900">Control Estricto de Roles y Privilegios</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                  Garantiza que cada usuario acceda exclusivamente a los datos y vistas que le corresponden. Los administradores gestionan el directorio completo, mientras los usuarios tienen acceso a su portal personal.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Rol <strong>ADMIN</strong>: Acceso a CRUD de usuarios, filtros y configuración</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Rol <strong>ROLE_USER</strong>: Gestión de perfil propio y consultas</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Protección en backend con Spring Security + Guards en frontend</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 font-mono text-xs">
+                <div class="text-[11px] text-slate-400 font-sans font-semibold uppercase">Permisos del Sistema</div>
+                <div class="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                  <span class="text-rose-600 font-bold">ADMIN</span>
+                  <span class="text-slate-600 text-[11px]">CREATE, READ, UPDATE, DELETE</span>
+                </div>
+                <div class="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                  <span class="text-indigo-600 font-bold">ROLE_USER</span>
+                  <span class="text-slate-600 text-[11px]">READ_SELF, UPDATE_SELF</span>
+                </div>
+                <div class="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                  <span class="text-amber-600 font-bold">INACTIVE</span>
+                  <span class="text-slate-600 text-[11px]">REQUIRES_EMAIL_VERIFICATION</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'jwt') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div class="space-y-4">
+                <app-badge variant="info">Sesiones Seguras</app-badge>
+                <h3 class="text-2xl font-bold text-slate-900">Autenticación Stateless con JWT</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                  Tokens Bearer cifrados que viajan de forma transparente en cada solicitud HTTP hacia el backend. Sin sesiones pesadas en el servidor, permitiendo alta concurrencia y máxima seguridad.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Firma digital con algoritmo HMAC SHA-256</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Almacenamiento persistente seguro en cliente</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Cierre de sesión inmediato con limpieza de tokens</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-slate-900 text-slate-300 rounded-xl p-5 font-mono text-xs space-y-2">
+                <div class="text-[10px] text-slate-500 uppercase">Estructura del Payload JWT</div>
+                <div class="text-amber-400">&#123;</div>
+                <div class="pl-4 text-emerald-400">"sub": "admin&#64;empresa.com",</div>
+                <div class="pl-4 text-indigo-400">"role": "ADMIN",</div>
+                <div class="pl-4 text-sky-400">"name": "Administrador",</div>
+                <div class="pl-4 text-slate-400">"iat": 1773705600,</div>
+                <div class="pl-4 text-slate-400">"exp": 1773792000</div>
+                <div class="text-amber-400">&#125;</div>
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'verification') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div class="space-y-4">
+                <app-badge variant="success">Validación de Cuentas</app-badge>
+                <h3 class="text-2xl font-bold text-slate-900">Activación Segura por Correo</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                  Al registrar una cuenta nueva, esta se crea en estado <strong class="text-slate-800">INACTIVE</strong>. Un enlace seguro con token temporal valida la dirección de correo y activa la cuenta automáticamente.
+                </p>
+                <div class="pt-2">
+                  <a
+                    routerLink="/verify"
+                    class="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-smooth"
+                  >
+                    <span>Ir al módulo de verificación &rarr;</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">
+                    1
+                  </div>
+                  <span>Registro con datos y contraseña</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">
+                    2
+                  </div>
+                  <span>Generación de token criptográfico</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
+                    3
+                  </div>
+                  <span>Activación y acceso inmediato a la app</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'audit') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div class="space-y-4">
+                <app-badge variant="info">Frontend Moderno</app-badge>
+                <h3 class="text-2xl font-bold text-slate-900">Angular 22 Standalone &amp; Signals</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                  Aprovechamiento total de los primitivos reactivos de Angular (Signals, Computed, View Transitions). Cero Zone.js overhead innecesario y renderizado instantáneo.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Transiciones suaves entre rutas y componentes</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Arquitectura Atomic Design (Atoms, Molecules, Organisms)</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                    <span>Tailwind CSS v4 compilado sin clases innecesarias</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-indigo-900 text-white rounded-xl p-5 space-y-3 shadow-md">
+                <div class="text-xs font-bold text-indigo-200">Arquitectura Atomic Design</div>
+                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                  <div class="bg-indigo-800/80 p-2 rounded-lg">
+                    <strong class="block text-indigo-100">Atoms</strong>
+                    <span>Button, Input, Avatar, Badge, Alert</span>
+                  </div>
+                  <div class="bg-indigo-800/80 p-2 rounded-lg">
+                    <strong class="block text-indigo-100">Molecules</strong>
+                    <span>FormField, SearchBar, PasswordInput</span>
+                  </div>
+                  <div class="bg-indigo-800/80 p-2 rounded-lg">
+                    <strong class="block text-indigo-100">Organisms</strong>
+                    <span>Navbar, Footer, UserTable, LoginForm</span>
+                  </div>
+                  <div class="bg-indigo-800/80 p-2 rounded-lg">
+                    <strong class="block text-indigo-100">Templates</strong>
+                    <span>MainLayout, AuthLayout</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         4. CORE CAPABILITIES (GRID OF 6 CARDS)
+         ========================================================================= -->
+    <section id="arquitectura" class="py-20 lg:py-28 bg-white border-t border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Capacidades Centrales</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Todo lo que Necesitas para Gestionar Accesos
+          </h2>
+          <p class="text-sm sm:text-base text-slate-600">
+            Una solución completa, robusta y escalable que responde a las necesidades empresariales modernas.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Card 1 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Directorio Centralizado</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Alta, baja y modificación de usuarios con sincronización instantánea y gestión visual de estados activo, pendiente e inactivo.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Seguridad &amp; Cifrado JWT</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Tokens cifrados con expiración automática, validación de credenciales y protección contra ataques comunes de sesión.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Roles Estrictos (RBAC)</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Políticas de autorización que separan los privilegios de los Administradores respecto a los Usuarios convencionales.
+            </p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Activación en 2 Fases</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Flujo de activación de cuentas que garantiza que únicamente los propietarios de correos válidos puedan acceder al sistema.
+            </p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Búsqueda Reactiva</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Filtro instantáneo con Angular Signals. Encuentra cualquier usuario por nombre, correo o rol sin latencias ni recargas.
+            </p>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="bg-slate-50/70 p-7 rounded-2xl border border-slate-200/90 card-hover space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-xs">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Diseño Atómico &amp; Modular</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Componentes altamente reutilizables y limpios creados bajo la metodología Atomic Design para facilitar mantenibilidad extrema.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         5. SECURITY & ZERO TRUST SECTION
+         ========================================================================= -->
+    <section id="seguridad" class="py-20 bg-slate-900 text-white relative overflow-hidden">
+      <!-- Glow effect background -->
+      <div class="absolute top-1/2 -left-20 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute top-1/2 -right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div class="space-y-6">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Seguridad de Nivel Corporativo
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Protección Integral de Datos con Cero Brechas
+            </h2>
+            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+              Nuestra arquitectura integra Spring Boot Security y Angular Standalone con comunicación HTTP segura. El sistema opera con principio de menor privilegio y aislamiento total de sesiones.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700">
+                <div class="text-indigo-400 font-bold text-sm mb-1">Cifrado Robusto</div>
+                <div class="text-xs text-slate-300">Contraseñas procesadas con hashing seguro sin almacenamiento en texto plano.</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700">
+                <div class="text-emerald-400 font-bold text-sm mb-1">Filtro Antispam</div>
+                <div class="text-xs text-slate-300">Verificación de correos duplicados antes del registro en base de datos.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/80 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+              <span class="text-xs font-semibold text-slate-300">Auditoría en Tiempo Real</span>
+              <span class="text-xs text-emerald-400 font-medium">100% Protegido</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="p-3 bg-slate-900/80 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Filtro de Autenticación JWT</span>
+                </div>
+                <span class="text-slate-400 font-mono">200 OK</span>
+              </div>
+
+              <div class="p-3 bg-slate-900/80 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Control de Acceso RBAC (Spring Security)</span>
+                </div>
+                <span class="text-slate-400 font-mono">Activo</span>
+              </div>
+
+              <div class="p-3 bg-slate-900/80 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Validación de Token de Verificación</span>
+                </div>
+                <span class="text-slate-400 font-mono">Verificado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         6. BOTTOM CALL TO ACTION
+         ========================================================================= -->
+    <section class="py-20 bg-linear-to-b from-slate-50 to-indigo-50/50">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-linear-to-tr from-indigo-600 via-indigo-700 to-purple-700 rounded-3xl p-8 sm:p-14 text-center text-white shadow-2xl shadow-indigo-400/30 relative overflow-hidden">
+          <div class="max-w-2xl mx-auto space-y-6 relative z-10">
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              ¿Listo para Administrar tus Usuarios con Total Seguridad?
+            </h2>
+            <p class="text-sm sm:text-base text-indigo-100">
+              Comienza hoy mismo registrando tu cuenta empresarial o explora los paneles de control de usuario y administrador.
+            </p>
+
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              @if (!isAuthenticated()) {
+                <a
+                  routerLink="/register"
+                  class="w-full sm:w-auto px-6 py-3.5 bg-white text-indigo-700 hover:bg-slate-100 font-bold rounded-xl shadow-md transition-smooth cursor-pointer"
+                >
+                  Registrarse Gratis
+                </a>
+                <a
+                  routerLink="/login"
+                  class="w-full sm:w-auto px-6 py-3.5 bg-indigo-800/80 hover:bg-indigo-900 text-white font-semibold rounded-xl border border-indigo-400/40 transition-smooth cursor-pointer"
+                >
+                  Iniciar Sesión
+                </a>
+              } @else {
+                <button
+                  type="button"
+                  (click)="goToDashboard()"
+                  class="w-full sm:w-auto px-6 py-3.5 bg-white text-indigo-700 hover:bg-slate-100 font-bold rounded-xl shadow-md transition-smooth cursor-pointer"
+                >
+                  Ir al Dashboard
+                </button>
+                <button
+                  type="button"
+                  (click)="goToUsersManagement()"
+                  class="w-full sm:w-auto px-6 py-3.5 bg-indigo-800/80 hover:bg-indigo-900 text-white font-semibold rounded-xl border border-indigo-400/40 transition-smooth cursor-pointer"
+                >
+                  Gestión de Usuarios
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Footer -->
+  <app-footer />
+</div>

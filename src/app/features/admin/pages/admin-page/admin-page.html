@@ -1,0 +1,40 @@
+<app-main-layout appTitle="Panel de Administración (ADMIN)">
+  <div class="space-y-6">
+    <!-- Blank/Placeholder header -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-slate-900">Panel de Administrador</h1>
+            <app-badge variant="danger">ADMIN</app-badge>
+          </div>
+          <p class="text-sm text-slate-500 mt-1">
+            Sesión activa como: <strong class="text-slate-800">{{ authService.currentUser()?.email || 'admin@empresa.com' }}</strong>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <app-button variant="secondary" (clicked)="goToUserManagement()">
+            Gestión de Usuarios
+          </app-button>
+          <app-button variant="ghost" (clicked)="handleLogout()">
+            Cerrar Sesión
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blank placeholder section -->
+    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center bg-slate-50/50">
+      <div class="mx-auto h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-slate-800">Espacio de Trabajo de Administración</h3>
+      <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        Esta página se deja en blanco intencionalmente como placeholder para los módulos exclusivos del rol de Administrador.
+      </p>
+    </div>
+  </div>
+</app-main-layout>

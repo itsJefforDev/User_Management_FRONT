@@ -1,0 +1,96 @@
+<div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-xs">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <tr>
+          <th scope="col" class="py-3.5 pl-6 pr-3">Usuario</th>
+          <th scope="col" class="px-3 py-3.5">Rol</th>
+          <th scope="col" class="px-3 py-3.5">Estado</th>
+          <th scope="col" class="px-3 py-3.5">Fecha Creación</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        @if (loading()) {
+          <tr>
+            <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+              <div class="inline-flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Cargando usuarios...
+              </div>
+            </td>
+          </tr>
+        } @else if (users().length === 0) {
+          <tr>
+            <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+              No se encontraron usuarios que coincidan con el criterio.
+            </td>
+          </tr>
+        } @else {
+          @for (user of users(); track user.id) {
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <!-- User details with avatar -->
+              <td class="whitespace-nowrap py-4 pl-6 pr-3">
+                <div class="flex items-center gap-3">
+                  <app-avatar [name]="user.name" [src]="user.avatarUrl" size="sm" />
+                  <div>
+                    <div class="font-semibold text-slate-900">{{ user.name }}</div>
+                    <div class="text-xs text-slate-500">{{ user.email }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Role -->
+              <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">
+                {{ user.role }}
+              </td>
+
+              <!-- Status Badge -->
+              <td class="whitespace-nowrap px-3 py-4">
+                @switch (user.status) {
+                  @case ('active') {
+                    <app-badge variant="success">Activo</app-badge>
+                  }
+                  @case ('inactive') {
+                    <app-badge variant="neutral">Inactivo</app-badge>
+                  }
+                  @case ('pending') {
+                    <app-badge variant="warning">Pendiente</app-badge>
+                  }
+                }
+              </td>
+
+              <!-- Created At -->
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-slate-500">
+                {{ user.createdAt }}
+              </td>
+
+              <!-- Actions -->
+              <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right">
+                <div class="flex justify-end gap-1.5">
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="editUser.emit(user)"
+                  >
+                    Editar
+                  </app-button>
+                  <app-button
+                    variant="danger"
+                    size="sm"
+                    (clicked)="deleteUser.emit(user)"
+                  >
+                    Eliminar
+                  </app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

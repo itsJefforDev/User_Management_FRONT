@@ -1,0 +1,52 @@
+<div class="space-y-6 text-center">
+  <app-auth-header
+    title="Activación de Cuenta"
+    subtitle="Procesando la verificación de tu correo electrónico"
+  />
+
+  @if (status() === 'loading') {
+    <div class="py-8 flex flex-col items-center justify-center space-y-3">
+      <svg class="animate-spin h-10 w-10 text-indigo-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <p class="text-sm font-medium text-slate-600">Verificando token de activación...</p>
+    </div>
+  }
+
+  @if (status() === 'success') {
+    <div class="space-y-4">
+      <app-alert variant="success" title="¡Verificación Exitosa!">
+        Tu correo electrónico ha sido confirmado y tu cuenta ha sido activada en el sistema.
+      </app-alert>
+
+      <app-button
+        type="button"
+        variant="primary"
+        (clicked)="goToLogin.emit()"
+        customClass="w-full"
+      >
+        Iniciar Sesión Ahora
+      </app-button>
+    </div>
+  }
+
+  @if (status() === 'error') {
+    <div class="space-y-4">
+      <app-alert variant="danger" title="Error de Verificación">
+        {{ errorMessage() || 'El token de activación no es válido o ha expirado.' }}
+      </app-alert>
+
+      <div class="pt-2 flex flex-col gap-2">
+        <app-button
+          type="button"
+          variant="secondary"
+          (clicked)="goToLogin.emit()"
+          customClass="w-full"
+        >
+          Ir al Inicio de Sesión
+        </app-button>
+      </div>
+    </div>
+  }
+</div>

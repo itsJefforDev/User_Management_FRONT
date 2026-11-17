@@ -1,0 +1,133 @@
+<div class="space-y-6">
+  <!-- Molecule: Auth Header -->
+  <app-auth-header
+    [title]="headerTitle()"
+    [subtitle]="headerSubtitle()"
+  />
+
+  <!-- Alert: Error feedback -->
+  @if (errorMessage()) {
+    <app-alert variant="danger" [dismissible]="true" (dismissed)="errorMessage.set(null)">
+      {{ errorMessage() }}
+    </app-alert>
+  }
+
+  <!-- ================= STEP 1: SOLICITAR EMAIL ================= -->
+  @if (step() === 'email') {
+    <form (submit)="handleEmailSubmit($event)" class="space-y-4">
+      <app-form-field
+        label="Correo Electrónico"
+        [required]="true"
+        [errorMessage]="emailError()"
+        hint="Ingresa el correo asociado a tu cuenta"
+      >
+        <app-input
+          type="email"
+          placeholder="nombre@empresa.com"
+          [value]="email()"
+          (valueChange)="onEmailChange($event)"
+          id="login-email"
+          name="email"
+        />
+      </app-form-field>
+
+      <app-button
+        type="submit"
+        variant="primary"
+        [loading]="loading()"
+        [disabled]="!isEmailValid()"
+        customClass="w-full"
+      >
+        Continuar
+      </app-button>
+    </form>
+  }
+
+  <!-- ================= EMAIL NO ENCONTRADO: OFRECER REGISTRO ================= -->
+  @if (step() === 'not-found') {
+    <div class="space-y-5">
+      <app-alert variant="warning" title="Correo no registrado">
+        El correo <strong class="font-semibold text-amber-900">{{ email() }}</strong> no se encuentra en el sistema.
+        ¿Deseas crear una cuenta nueva con este correo?
+      </app-alert>
+
+      <div class="space-y-2.5">
+        <app-button
+          type="button"
+          variant="primary"
+          (clicked)="proceedToRegister()"
+          customClass="w-full"
+        >
+          Sí, crear una cuenta
+        </app-button>
+
+        <app-button
+          type="button"
+          variant="ghost"
+          (clicked)="resetToEmailStep()"
+          customClass="w-full"
+        >
+          Intentar con otro correo
+        </app-button>
+      </div>
+    </div>
+  }
+
+  <!-- ================= STEP 2: SOLICITAR CONTRASEÑA ================= -->
+  @if (step() === 'password') {
+    <form (submit)="handlePasswordSubmit($event)" class="space-y-4">
+      <!-- Email confirmation badge -->
+      <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <svg class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+          </svg>
+          <span class="text-xs font-medium text-slate-700 truncate">{{ email() }}</span>
+        </div>
+        <button
+          type="button"
+          (click)="resetToEmailStep()"
+          class="text-xs text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer shrink-0 ml-2"
+        >
+          Cambiar
+        </button>
+      </div>
+
+      <app-form-field
+        label="Contraseña"
+        [required]="true"
+        [errorMessage]="passwordError()"
+      >
+        <app-password-input
+          [value]="password()"
+          (valueChange)="onPasswordChange($event)"
+          id="login-password"
+        />
+      </app-form-field>
+
+      <app-button
+        type="submit"
+        variant="primary"
+        [loading]="loading()"
+        [disabled]="!password()"
+        customClass="w-full"
+      >
+        Iniciar Sesión
+      </app-button>
+    </form>
+  }
+
+  <!-- Footer link to register directly -->
+  <div class="text-center pt-2 border-t border-slate-100">
+    <p class="text-xs text-slate-500">
+      ¿No tienes una cuenta?
+      <button
+        type="button"
+        (click)="goToRegister.emit(email())"
+        class="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer ml-1"
+      >
+        Regístrate aquí
+      </button>
+    </p>
+  </div>
+</div>
