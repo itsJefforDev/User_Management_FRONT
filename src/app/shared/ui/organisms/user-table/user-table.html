@@ -19,7 +19,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                 </svg>
-                Cargando usuarios...
+                Cargando usuarios desde el servidor...
               </div>
             </td>
           </tr>
@@ -43,29 +43,41 @@
                 </div>
               </td>
 
-              <!-- Role -->
-              <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">
-                {{ user.role }}
+              <!-- Role (muestra todos los roles del Set) -->
+              <td class="whitespace-nowrap px-3 py-4">
+                <div class="flex flex-wrap gap-1">
+                  @for (role of user.roles; track role) {
+                    <app-badge [variant]="role === 'ADMIN' ? 'danger' : 'info'" size="sm">
+                      {{ role }}
+                    </app-badge>
+                  }
+                  @if (!user.roles || user.roles.length === 0) {
+                    <app-badge variant="neutral" size="sm">Sin rol</app-badge>
+                  }
+                </div>
               </td>
 
               <!-- Status Badge -->
               <td class="whitespace-nowrap px-3 py-4">
                 @switch (user.status) {
-                  @case ('active') {
+                  @case ('ACTIVE') {
                     <app-badge variant="success">Activo</app-badge>
                   }
-                  @case ('inactive') {
+                  @case ('INACTIVE') {
                     <app-badge variant="neutral">Inactivo</app-badge>
                   }
-                  @case ('pending') {
-                    <app-badge variant="warning">Pendiente</app-badge>
+                  @case ('LOCKED') {
+                    <app-badge variant="danger">Bloqueado</app-badge>
+                  }
+                  @default {
+                    <app-badge variant="warning">{{ user.status }}</app-badge>
                   }
                 }
               </td>
 
               <!-- Created At -->
               <td class="whitespace-nowrap px-3 py-4 text-xs text-slate-500">
-                {{ user.createdAt }}
+                {{ user.createdAt || '—' }}
               </td>
 
               <!-- Actions -->

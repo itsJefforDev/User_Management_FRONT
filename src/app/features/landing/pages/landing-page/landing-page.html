@@ -193,7 +193,7 @@
                 </div>
 
                 <div class="divide-y divide-slate-100">
-                  @for (user of previewUsers(); track user.id) {
+                  @for (user of previewUsers; track user.id) {
                     <div class="px-4 py-3 flex items-center justify-between hover:bg-slate-50/60 transition-smooth">
                       <div class="flex items-center gap-3">
                         <app-avatar [name]="user.name" size="sm" />
@@ -204,11 +204,19 @@
                       </div>
 
                       <div class="flex items-center gap-3">
-                        <app-badge [variant]="user.role === 'Admin' ? 'danger' : 'info'" size="sm">
-                          {{ user.role }}
+                        <app-badge [variant]="user.roles.includes('ADMIN') ? 'danger' : 'info'" size="sm">
+                          {{ getPrimaryRole(user.roles) }}
                         </app-badge>
-                        <span class="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium"
+                          [class.text-emerald-600]="user.status === 'ACTIVE'"
+                          [class.text-slate-400]="user.status === 'INACTIVE'"
+                          [class.text-rose-600]="user.status === 'LOCKED'"
+                        >
+                          <span class="w-1.5 h-1.5 rounded-full"
+                            [class.bg-emerald-500]="user.status === 'ACTIVE'"
+                            [class.bg-slate-400]="user.status === 'INACTIVE'"
+                            [class.bg-rose-500]="user.status === 'LOCKED'"
+                          ></span>
                           {{ user.status }}
                         </span>
                       </div>
