@@ -1,0 +1,7 @@
+<app-auth-layout>
+  <app-login-form
+    [initialEmail]="initialEmail()"
+    (loginSuccess)="onLoginSuccess($event)"
+    (goToRegister)="onGoToRegister($event)"
+  />
+</app-auth-layout>

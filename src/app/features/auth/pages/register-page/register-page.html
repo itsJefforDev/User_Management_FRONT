@@ -1,0 +1,7 @@
+<app-auth-layout>
+  <app-register-form
+    [initialEmail]="initialEmail()"
+    (accountVerified)="onAccountVerified($event)"
+    (goToLogin)="onGoToLogin()"
+  />
+</app-auth-layout>

@@ -1,0 +1,157 @@
+<div class="space-y-6">
+  <!-- Molecule: Auth Header -->
+  <app-auth-header
+    [title]="isVerificationStep() ? 'Verifica tu Correo' : 'Crea tu Cuenta'"
+    [subtitle]="isVerificationStep() ? 'Activa tu cuenta con el código recibido' : 'Ingresa tus datos para registrarte en la plataforma'"
+  />
+
+  <!-- Alert feedback -->
+  @if (errorMessage()) {
+    <app-alert variant="danger" [dismissible]="true" (dismissed)="errorMessage.set(null)">
+      {{ errorMessage() }}
+    </app-alert>
+  }
+
+  @if (successMessage()) {
+    <app-alert variant="success" [dismissible]="true" (dismissed)="successMessage.set(null)">
+      {{ successMessage() }}
+    </app-alert>
+  }
+
+  <!-- ================= ETAPA 1: FORMULARIO DE REGISTRO ================= -->
+  @if (!isVerificationStep()) {
+    <form (submit)="handleRegisterSubmit($event)" class="space-y-4">
+      <!-- Nombre -->
+      <app-form-field
+        label="Nombre Completo"
+        [required]="true"
+        [errorMessage]="errors()['name']"
+      >
+        <app-input
+          [value]="formData().name"
+          (valueChange)="updateField('name', $event)"
+          placeholder="Juan Pérez"
+          id="register-name"
+        />
+      </app-form-field>
+
+      <!-- Email -->
+      <app-form-field
+        label="Correo Electrónico"
+        [required]="true"
+        [errorMessage]="errors()['email']"
+      >
+        <app-input
+          type="email"
+          [value]="formData().email"
+          (valueChange)="updateField('email', $event)"
+          placeholder="nombre@empresa.com"
+          id="register-email"
+        />
+      </app-form-field>
+
+      <!-- Contraseña -->
+      <app-form-field
+        label="Contraseña"
+        [required]="true"
+        [errorMessage]="errors()['password']"
+        hint="Mínimo 6 caracteres"
+      >
+        <app-password-input
+          [value]="formData().password"
+          (valueChange)="updateField('password', $event)"
+          placeholder="••••••••"
+          id="register-password"
+        />
+      </app-form-field>
+
+      <!-- Confirmar Contraseña -->
+      <app-form-field
+        label="Confirmar Contraseña"
+        [required]="true"
+        [errorMessage]="errors()['confirmPassword']"
+      >
+        <app-password-input
+          [value]="formData().confirmPassword"
+          (valueChange)="updateField('confirmPassword', $event)"
+          placeholder="••••••••"
+          id="register-confirm-password"
+        />
+      </app-form-field>
+
+      <app-button
+        type="submit"
+        variant="primary"
+        [loading]="loading()"
+        customClass="w-full"
+      >
+        Crear Cuenta
+      </app-button>
+    </form>
+  }
+
+  <!-- ================= ETAPA 2: VALIDACIÓN DE CORREO Y ACTIVACIÓN ================= -->
+  @if (isVerificationStep()) {
+    <div class="space-y-5">
+      <app-alert variant="info" title="Correo de activación enviado">
+        Se ha enviado un mensaje con el token de activación a
+        <strong class="font-semibold text-sky-950">{{ formData().email }}</strong>.
+        La cuenta se encuentra en estado inactivo hasta su verificación.
+      </app-alert>
+
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+        <p class="text-xs text-slate-600">
+          Ingresa el token de verificación que recibiste por correo para activar tu cuenta de inmediato:
+        </p>
+
+        <app-form-field
+          label="Token de Activación"
+          [required]="true"
+          [errorMessage]="tokenError()"
+        >
+          <app-input
+            [value]="activationToken()"
+            (valueChange)="activationToken.set($event)"
+            placeholder="Ej: d8a9f24b-32c1-4b77..."
+            id="activation-token"
+          />
+        </app-form-field>
+
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="verifyingToken()"
+          [disabled]="!activationToken()"
+          (clicked)="handleVerifyAccount()"
+          customClass="w-full"
+        >
+          Activar y Validar Cuenta
+        </app-button>
+      </div>
+
+      <div class="text-center">
+        <button
+          type="button"
+          (click)="isVerificationStep.set(false)"
+          class="text-xs text-slate-500 hover:text-slate-700 underline cursor-pointer"
+        >
+          &larr; Volver a editar datos
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Link de retorno al login -->
+  <div class="text-center pt-2 border-t border-slate-100">
+    <p class="text-xs text-slate-500">
+      ¿Ya tienes una cuenta?
+      <button
+        type="button"
+        (click)="goToLogin.emit()"
+        class="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer ml-1"
+      >
+        Inicia Sesión
+      </button>
+    </p>
+  </div>
+</div>
