@@ -61,7 +61,7 @@ export class UsersPageComponent implements OnInit {
 
   ngOnInit() {
     // Verificar que el usuario sea ADMIN
-    if (this.authService.isAdmin()) {
+    if (!this.authService.isAdmin()) {
       this.router.navigate(['/user']);
       return;
     }
@@ -73,7 +73,7 @@ export class UsersPageComponent implements OnInit {
     this.userService.setSearchQuery(query);
   }
 
-  // ─── Crear usuario (Modal) ────────────────────────────────────────
+  //Crear usuario (Modal)
 
   protected toggleCreateModal(open: boolean) {
     this.showCreateModal.set(open);
@@ -124,7 +124,7 @@ export class UsersPageComponent implements OnInit {
     });
   }
 
-  // ─── Editar usuario (Modal) ───────────────────────────────────────
+  //Editar usuario (Modal)
 
   protected onEditUser(user: User) {
     this.editingUser.set(user);
@@ -183,7 +183,7 @@ export class UsersPageComponent implements OnInit {
     });
   }
 
-  // ─── Eliminar usuario ─────────────────────────────────────────────
+  //Eliminar usuario
 
   protected onDeleteUser(user: User) {
     if (
@@ -205,13 +205,13 @@ export class UsersPageComponent implements OnInit {
     });
   }
 
-  // ─── Recargar lista ───────────────────────────────────────────────
+  //Recargar lista
 
   protected reloadUsers() {
     this.userService.loadUsers();
   }
 
-  // ─── Helper: mensaje de éxito temporal ────────────────────────────
+  //Helper: mensaje de éxito temporal
 
   private showSuccess(msg: string) {
     this.successMessage.set(msg);
