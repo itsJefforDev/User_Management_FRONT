@@ -23,19 +23,19 @@ export class UserService {
   private readonly apiUrl =
     'http://localhost:8080/userManagement/api/v1/users';
 
-  // ─── Estado reactivo con Signals ──────────────────────────────────
+  //Estado reactivo con Signals
   private readonly usersSignal = signal<User[]>([]);
   private readonly searchQuery = signal<string>('');
   private readonly loadingSignal = signal<boolean>(false);
   private readonly errorSignal = signal<string | null>(null);
 
-  // ─── Señales públicas de solo lectura ─────────────────────────────
+  //Señales públicas de solo lectura
   readonly allUsers = this.usersSignal.asReadonly();
   readonly currentSearch = this.searchQuery.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
 
-  // ─── Computed: filtrado local reactivo ────────────────────────────
+  //Computed: filtrado local reactivo
   readonly filteredUsers = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const users = this.usersSignal();
@@ -64,7 +64,7 @@ export class UserService {
     () => this.usersSignal().filter((u) => u.status === 'LOCKED').length
   );
 
-  // ─── Helpers privados ─────────────────────────────────────────────
+  //Helpers privados
 
   /**
    * Construye los headers HTTP con el token JWT de autorización.
