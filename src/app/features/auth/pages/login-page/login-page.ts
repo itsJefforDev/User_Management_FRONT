@@ -25,12 +25,20 @@ export class LoginPageComponent implements OnInit {
   }
 
   onLoginSuccess(res: LoginResponse) {
-      const role = (
-    res.role?.[0]?.name ||
-    res.user?.role?.[0]?.name ||
-    ''
-  ).toUpperCase();
-    if (role.includes('ADMIN')) {
+    let roleStr = '';
+    if (typeof res.role === 'string') {
+      roleStr = res.role;
+    } else if (Array.isArray(res.role) && res.role.length > 0) {
+      roleStr = typeof res.role[0] === 'string' ? res.role[0] : (res.role[0]?.name || '');
+    } else if (res.user?.role) {
+      if (typeof res.user.role === 'string') {
+        roleStr = res.user.role;
+      } else if (Array.isArray(res.user.role) && res.user.role.length > 0) {
+        roleStr = typeof res.user.role[0] === 'string' ? res.user.role[0] : (res.user.role[0]?.name || '');
+      }
+    }
+
+    if (roleStr.toUpperCase().includes('ADMIN')) {
       this.router.navigate(['/admin']);
     } else {
       this.router.navigate(['/user']);

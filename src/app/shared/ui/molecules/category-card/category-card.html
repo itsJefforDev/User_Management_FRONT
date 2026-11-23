@@ -1,0 +1,105 @@
+<div
+  class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 card-hover flex flex-col justify-between transition-smooth relative overflow-hidden"
+  [class.opacity-75]="!category().active"
+>
+  <!-- Accent top bar according to category type -->
+  <div
+    class="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r"
+    [class]="typeTheme().bgGradient"
+  ></div>
+
+  <div>
+    <!-- Top row: Type Icon, Category Name, & Status Badge -->
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-11 h-11 rounded-xl flex items-center justify-center font-bold shadow-xs shrink-0"
+          [class]="typeTheme().iconBg"
+        >
+          @switch (category().type.toUpperCase()) {
+            @case ('EXPENSE') {
+              <!-- Expense Icon: Trending Down / Shopping Bag -->
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+              </svg>
+            }
+            @case ('INCOME') {
+              <!-- Income Icon: Trending Up / Cash -->
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            }
+            @default {
+              <!-- Both / Transfer Icon -->
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+            }
+          }
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-slate-900 leading-snug line-clamp-1">
+            {{ category().name }}
+          </h3>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-xs text-slate-500 font-medium">
+              ID #{{ category().id }}
+            </span>
+            <app-badge [variant]="badgeVariant()" size="sm">
+              {{ typeLabel() }}
+            </app-badge>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active / Inactive Badge -->
+      <div>
+        @if (category().active) {
+          <app-badge variant="success" size="sm">Activa</app-badge>
+        } @else {
+          <app-badge variant="neutral" size="sm">Inactiva</app-badge>
+        }
+      </div>
+    </div>
+
+    <!-- Description Section -->
+    <div class="my-4 p-3.5 rounded-xl bg-slate-50/80 border border-slate-100 min-h-[64px]">
+      <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+        {{ category().description || 'Sin descripción adicional para esta categoría.' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+    <span class="text-[11px] font-mono text-slate-400">
+      @if (category().updatedAt) {
+        Act. {{ category().updatedAt | slice:0:10 }}
+      } @else {
+        Registrada
+      }
+    </span>
+
+    @if (!readonly()) {
+      <div class="flex items-center gap-1.5">
+        <app-button variant="ghost" size="sm" (clicked)="edit.emit(category())">
+          <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Editar
+        </app-button>
+
+        @if (category().active) {
+          <app-button variant="danger" size="sm" (clicked)="delete.emit(category())">
+            Desactivar
+          </app-button>
+        } @else {
+          <app-button variant="secondary" size="sm" (clicked)="toggleStatus.emit(category())">
+            Activar
+          </app-button>
+        }
+      </div>
+    }
+  </div>
+</div>

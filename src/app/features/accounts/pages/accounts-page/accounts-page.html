@@ -1,0 +1,376 @@
+<app-main-layout appTitle="Gestión de Cuentas Bancarias">
+  <div class="space-y-6">
+    <!-- Success Feedback Alert -->
+    @if (successMessage()) {
+      <app-alert variant="success" [dismissible]="true" (dismissed)="successMessage.set(null)">
+        {{ successMessage() }}
+      </app-alert>
+    }
+
+    <!-- Error Alert -->
+    @if (accountService.error()) {
+      <app-alert variant="danger" [dismissible]="true">
+        {{ accountService.error() }}
+      </app-alert>
+    }
+
+    <!-- Header Section -->
+    <div class="sm:flex sm:items-center sm:justify-between pb-5 border-b border-slate-200">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+            Cuentas Bancarias y Financieras
+          </h1>
+          <app-badge variant="info">
+            {{ accountService.totalAccounts() }} registradas
+          </app-badge>
+        </div>
+        <p class="mt-1 text-sm text-slate-500">
+          Administra cuentas de ahorro, corrientes, billeteras digitales y efectivo según la especificación financiera corporativa.
+        </p>
+      </div>
+
+      <div class="mt-4 sm:mt-0 flex items-center gap-2">
+        <app-button variant="ghost" size="sm" (clicked)="reloadAccounts()">
+          <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Sincronizar
+        </app-button>
+
+        <app-button variant="primary" (clicked)="openCreateModal()">
+          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nueva Cuenta
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Financial KPI Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Balance Card -->
+      <div class="bg-linear-to-br from-indigo-900 via-indigo-800 to-indigo-950 rounded-2xl p-5 text-white shadow-md shadow-indigo-900/10 card-hover">
+        <div class="flex items-center justify-between text-indigo-200 text-xs font-semibold">
+          <span>Saldo Total Activo</span>
+          <span class="w-7 h-7 rounded-lg bg-indigo-700/60 flex items-center justify-center text-white">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-2xl font-extrabold mt-3 tracking-tight">
+          {{ formatCurrency(accountService.totalBalance()) }}
+        </div>
+        <div class="mt-2 text-[11px] text-indigo-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>{{ accountService.activeAccountsCount() }} cuentas activas computando</span>
+        </div>
+      </div>
+
+      <!-- Bank Accounts Card -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Cuentas Bancarias (BANK)</span>
+          <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ accountService.bankCount() }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500">
+          Ahorros y corrientes empresariales
+        </div>
+      </div>
+
+      <!-- Digital Wallets Card -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Billeteras Digitales</span>
+          <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ accountService.walletCount() }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500">
+          Nequi, Daviplata, depósitos ágiles
+        </div>
+      </div>
+
+      <!-- Cash / Box Card -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Caja Menor / Efectivo</span>
+          <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ accountService.cashCount() }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500">
+          Dinero físico para gastos inmediatos
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search bar -->
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar cuenta por nombre o tipo..."
+            [value]="accountService.searchQuery()"
+            (input)="onSearch($event)"
+            class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+          />
+        </div>
+
+        <!-- Filter pills: Types -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button
+            type="button"
+            (click)="setTypeFilter('ALL')"
+            class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+            [class.bg-indigo-600]="accountService.typeFilter() === 'ALL'"
+            [class.text-white]="accountService.typeFilter() === 'ALL'"
+            [class.bg-slate-100]="accountService.typeFilter() !== 'ALL'"
+            [class.text-slate-700]="accountService.typeFilter() !== 'ALL'"
+          >
+            Todas ({{ accountService.totalAccounts() }})
+          </button>
+          <button
+            type="button"
+            (click)="setTypeFilter('BANK')"
+            class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+            [class.bg-indigo-600]="accountService.typeFilter() === 'BANK'"
+            [class.text-white]="accountService.typeFilter() === 'BANK'"
+            [class.bg-slate-100]="accountService.typeFilter() !== 'BANK'"
+            [class.text-slate-700]="accountService.typeFilter() !== 'BANK'"
+          >
+            Bancos
+          </button>
+          <button
+            type="button"
+            (click)="setTypeFilter('DIGITAL_WALLET')"
+            class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+            [class.bg-indigo-600]="accountService.typeFilter() === 'DIGITAL_WALLET'"
+            [class.text-white]="accountService.typeFilter() === 'DIGITAL_WALLET'"
+            [class.bg-slate-100]="accountService.typeFilter() !== 'DIGITAL_WALLET'"
+            [class.text-slate-700]="accountService.typeFilter() !== 'DIGITAL_WALLET'"
+          >
+            Billeteras
+          </button>
+          <button
+            type="button"
+            (click)="setTypeFilter('CASH')"
+            class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+            [class.bg-indigo-600]="accountService.typeFilter() === 'CASH'"
+            [class.text-white]="accountService.typeFilter() === 'CASH'"
+            [class.bg-slate-100]="accountService.typeFilter() !== 'CASH'"
+            [class.text-slate-700]="accountService.typeFilter() !== 'CASH'"
+          >
+            Efectivo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accounts Grid / Cards Container -->
+    @if (accountService.loading()) {
+      <div class="py-16 text-center text-slate-500 text-sm bg-white rounded-2xl border border-slate-200">
+        <div class="inline-flex items-center gap-2">
+          <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Consultando cuentas financieras...</span>
+        </div>
+      </div>
+    } @else if (accountService.filteredAccounts().length === 0) {
+      <div class="py-16 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-800">No se encontraron cuentas</h3>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          No hay cuentas registradas que coincidan con los filtros de búsqueda actuales.
+        </p>
+        <div class="mt-4">
+          <app-button variant="primary" size="sm" (clicked)="openCreateModal()">
+            Crear Primera Cuenta
+          </app-button>
+        </div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+        @for (account of accountService.filteredAccounts(); track account.id) {
+          <app-account-card
+            [account]="account"
+            (edit)="onEditAccount($event)"
+            (deactivate)="onDeactivateAccount($event)"
+          />
+        }
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MODAL CREAR CUENTA BANCARIA
+         ══════════════════════════════════════════════════════════════════ -->
+    @if (showCreateModal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                💳
+              </div>
+              <h3 class="text-lg font-bold text-slate-900">Registrar Cuenta Financiera</h3>
+            </div>
+            <button
+              type="button"
+              (click)="closeCreateModal()"
+              class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (createError()) {
+            <app-alert variant="danger">{{ createError() }}</app-alert>
+          }
+
+          <div class="space-y-4 text-sm">
+            <app-form-field label="Nombre de la Cuenta" [required]="true">
+              <app-input
+                placeholder="Ej. Bancolombia Ahorros, Nequi Personal, Caja Menor"
+                [value]="newName()"
+                (valueChange)="newName.set($event)"
+              />
+            </app-form-field>
+
+            <app-form-field label="Tipo de Cuenta" [required]="true">
+              <select
+                [value]="newType()"
+                (change)="onNewTypeChange($event)"
+                class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
+              >
+                <option value="BANK">Cuenta Bancaria (Ahorros / Corriente)</option>
+                <option value="DIGITAL_WALLET">Billetera Virtual (Nequi, Daviplata)</option>
+                <option value="CASH">Efectivo / Caja</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Saldo Inicial (COP)" [required]="true">
+              <app-input
+                type="number"
+                placeholder="0"
+                [value]="newBalance().toString()"
+                (valueChange)="onNewBalanceChange($event)"
+              />
+            </app-form-field>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeCreateModal()">
+              Cancelar
+            </app-button>
+            <app-button
+              variant="primary"
+              [disabled]="!newName().trim() || createLoading()"
+              [loading]="createLoading()"
+              (clicked)="saveNewAccount()"
+            >
+              Crear Cuenta
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         MODAL EDITAR CUENTA
+         ══════════════════════════════════════════════════════════════════ -->
+    @if (showEditModal() && editingAccount()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Modificar Cuenta</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                ID #{{ editingAccount()!.id }} &bull; Saldo actual: {{ formatCurrency(editingAccount()!.balance) }}
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (editError()) {
+            <app-alert variant="danger">{{ editError() }}</app-alert>
+          }
+
+          <div class="space-y-4 text-sm">
+            <app-form-field label="Nombre de la Cuenta" [required]="true">
+              <app-input
+                placeholder="Nombre actualizado"
+                [value]="editName()"
+                (valueChange)="editName.set($event)"
+              />
+            </app-form-field>
+
+            <app-form-field label="Tipo de Cuenta">
+              <select
+                [value]="editType()"
+                (change)="onEditTypeChange($event)"
+                class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
+              >
+                <option value="BANK">Cuenta Bancaria (Ahorros / Corriente)</option>
+                <option value="DIGITAL_WALLET">Billetera Virtual (Nequi, Daviplata)</option>
+                <option value="CASH">Efectivo / Caja</option>
+              </select>
+            </app-form-field>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeEditModal()">
+              Cancelar
+            </app-button>
+            <app-button
+              variant="primary"
+              [disabled]="!editName().trim() || editLoading()"
+              [loading]="editLoading()"
+              (clicked)="saveEditAccount()"
+            >
+              Guardar Cambios
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</app-main-layout>

@@ -6,12 +6,21 @@ import { AdminPageComponent } from './features/admin/pages/admin-page/admin-page
 import { UserPageComponent } from './features/user/pages/user-page/user-page';
 import { UsersPageComponent } from './features/users/pages/users-page/users-page';
 import { LandingPageComponent } from './features/landing/pages/landing-page/landing-page';
+import { AccountsPageComponent } from './features/accounts/pages/accounts-page/accounts-page';
+import { CategoriesPageComponent } from './features/categories/pages/categories-page/categories-page';
+import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  // ─── Rutas públicas ───────────────────────────────────────────────
   {
     path: '',
     pathMatch: 'full',
     redirectTo: 'landing',
+  },
+  {
+    path: 'landing',
+    component: LandingPageComponent,
   },
   {
     path: 'login',
@@ -25,24 +34,37 @@ export const routes: Routes = [
     path: 'verify',
     component: VerifyPageComponent,
   },
+
+  // ─── Rutas protegidas (Requieren autenticación) ───────────────────
   {
     path: 'admin',
     component: AdminPageComponent,
+    canActivate: [authGuard, adminGuard],
   },
   {
     path: 'user',
     component: UserPageComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'users-management',
     component: UsersPageComponent,
+    canActivate: [authGuard, adminGuard],
   },
-    {
-    path: 'landing',
-    component: LandingPageComponent,
+  {
+    path: 'accounts',
+    component: AccountsPageComponent,
+    canActivate: [authGuard],
   },
-  // {
-  //   path: '**',
-  //   redirectTo: 'login',
-  // },
+  {
+    path: 'categories',
+    component: CategoriesPageComponent,
+    canActivate: [authGuard, adminGuard],
+  },
+
+  // ─── Ruta comodín ─────────────────────────────────────────────────
+  {
+    path: '**',
+    redirectTo: 'landing',
+  },
 ];

@@ -93,6 +93,18 @@ export class NavbarComponent {
     this.router.navigate(['/users-management']);
   }
 
+  goToAccounts() {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/accounts']);
+  }
+
+    goToCategories() {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/categories']);
+  }
+
   openEditProfile() {
     this.closeDropdown();
     this.closeMobileMenu();

@@ -8,15 +8,18 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   type?: string;
-  role?: Role[];
+  role?: Role[] | any;
   email?: string;
   name?: string;
+  userId?: number;
+  message?: string;
+  status?: string;
 
   user?: {
     id?: number | string;
     email: string;
     name: string;
-    role: Role[];
+    role: Role[] | any;
     status?: string;
   };
 }

@@ -15,7 +15,6 @@ import { User } from '../../../../core/models/user.model';
     NavbarComponent,
     FooterComponent,
     BadgeComponent,
-    ButtonComponent,
     AvatarComponent,
   ],
   templateUrl: './landing-page.html',

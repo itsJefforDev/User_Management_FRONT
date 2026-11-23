@@ -18,11 +18,11 @@ describe('UserTableComponent', () => {
     const fixture = TestBed.createComponent(UserTableComponent);
     const mockUsers: User[] = [
       {
-        id: '1',
+        id: 1,
         name: 'Sofia Gomez',
         email: 'sofia@empresa.com',
-        role: 'Admin',
-        status: 'active',
+        roles: ['ADMIN'],
+        status: 'ACTIVE',
         createdAt: '2026-01-01',
       },
     ];
