@@ -2,6 +2,19 @@
   <app-navbar [title]="appTitle()" />
 
   <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+    @if (notificationService.currentAlert(); as alert) {
+      <div class="mb-6 animate-fade-in">
+        <app-alert
+          [variant]="alert.type"
+          [title]="alert.title || ''"
+          [dismissible]="true"
+          (dismissed)="notificationService.clear()"
+        >
+          {{ alert.message }}
+        </app-alert>
+      </div>
+    }
+
     <ng-content></ng-content>
   </main>
 

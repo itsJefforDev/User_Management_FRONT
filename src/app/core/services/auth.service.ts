@@ -39,6 +39,13 @@ export class AuthService {
     return this.userRole().includes('ADMIN');
   });
 
+  readonly currentUserId = computed<number>(() => {
+    const user = this.currentUser();
+    if (user?.userId) return Number(user.userId);
+    if (user?.user?.id) return Number(user.user.id);
+    return 1;
+  });
+
   // In-memory registered cache for local testing / fallback
   private readonly knownUsers = new Map<string, { role: string; name: string }>([
     ['admin@empresa.com', { role: 'ADMIN', name: 'Administrador' }],

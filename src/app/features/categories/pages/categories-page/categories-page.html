@@ -1,0 +1,588 @@
+<app-main-layout appTitle="Gestión de Categorías &mdash; Portal Administrativo">
+  <div class="space-y-8 animate-fade-in">
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         BREADCRUMB & HEADER
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-50/70 rounded-full blur-3xl pointer-events-none -z-0"></div>
+
+      <!-- Navigation Breadcrumb -->
+      <nav class="flex items-center gap-2 text-xs text-slate-500 mb-4 font-medium" aria-label="Breadcrumb">
+        <a routerLink="/" class="hover:text-indigo-600 transition-smooth">Inicio</a>
+        <span>&rsaquo;</span>
+        <a routerLink="/admin" class="hover:text-indigo-600 transition-smooth">Intranet Administrativa</a>
+        <span>&rsaquo;</span>
+        <span class="text-slate-800 font-semibold">Gestión de Categorías</span>
+      </nav>
+
+      <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Gestión de Categorías Financieras
+            </h1>
+            <app-badge variant="danger" size="sm">ADMIN ONLY</app-badge>
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full font-mono">
+              /api/v1/categories
+            </span>
+          </div>
+          <p class="text-sm text-slate-500 mt-2 max-w-2xl leading-relaxed">
+            Administración centralizada de categorías contables según la especificación técnica. Clasifica los flujos de gastos, ingresos o transacciones mixtas para los presupuestos corporativos.
+          </p>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <a
+            routerLink="/admin"
+            class="inline-flex items-center justify-center px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-smooth"
+          >
+            &larr; Volver a Intranet
+          </a>
+
+          <app-button variant="primary" size="md" (clicked)="openCreateModal()">
+            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nueva Categoría
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         KPI CARDS ROW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Total Categorías -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Total Categorías</span>
+          <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            🏷️
+          </span>
+        </div>
+        <div class="text-3xl font-extrabold text-slate-900 mt-3">
+          {{ categoryService.totalCategories() }}
+        </div>
+        <div class="mt-2 text-xs text-slate-500 flex items-center gap-2">
+          <span class="text-emerald-600 font-semibold">{{ categoryService.activeCategoriesCount() }} activas</span>
+          <span>&bull;</span>
+          <span class="text-slate-400 font-semibold">{{ categoryService.inactiveCategoriesCount() }} inactivas</span>
+        </div>
+      </div>
+
+      <!-- Gastos (EXPENSE) -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Categorías de Gastos</span>
+          <span class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+            📉
+          </span>
+        </div>
+        <div class="text-3xl font-extrabold text-rose-600 mt-3">
+          {{ categoryService.expenseCategoriesCount() }}
+        </div>
+        <div class="mt-2 text-xs text-slate-500">
+          Tipo <code class="font-mono text-slate-600 bg-slate-100 px-1 py-0.5 rounded">EXPENSE</code>
+        </div>
+      </div>
+
+      <!-- Ingresos (INCOME) -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Categorías de Ingresos</span>
+          <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            📈
+          </span>
+        </div>
+        <div class="text-3xl font-extrabold text-emerald-600 mt-3">
+          {{ categoryService.incomeCategoriesCount() }}
+        </div>
+        <div class="mt-2 text-xs text-slate-500">
+          Tipo <code class="font-mono text-slate-600 bg-slate-100 px-1 py-0.5 rounded">INCOME</code>
+        </div>
+      </div>
+
+      <!-- Mixtas (BOTH) -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs card-hover">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+          <span>Categorías Mixtas</span>
+          <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+            🔄
+          </span>
+        </div>
+        <div class="text-3xl font-extrabold text-sky-600 mt-3">
+          {{ categoryService.bothCategoriesCount() }}
+        </div>
+        <div class="mt-2 text-xs text-slate-500">
+          Tipo <code class="font-mono text-slate-600 bg-slate-100 px-1 py-0.5 rounded">BOTH</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         TOOLBAR: BÚSQUEDA Y FILTROS
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Search Input -->
+        <div class="w-full lg:max-w-md relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, descripción o tipo..."
+            [value]="categoryService.searchQuery()"
+            (input)="setSearch($any($event.target).value)"
+            class="block w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+          />
+        </div>
+
+        <!-- Filter Pills: Type and Status -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Type Filter -->
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              (click)="setTypeFilter('ALL')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.typeFilter() === 'ALL'"
+              [class.shadow-xs]="categoryService.typeFilter() === 'ALL'"
+              [class.text-indigo-600]="categoryService.typeFilter() === 'ALL'"
+              [class.text-slate-600]="categoryService.typeFilter() !== 'ALL'"
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              (click)="setTypeFilter('EXPENSE')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.typeFilter() === 'EXPENSE'"
+              [class.shadow-xs]="categoryService.typeFilter() === 'EXPENSE'"
+              [class.text-rose-600]="categoryService.typeFilter() === 'EXPENSE'"
+              [class.text-slate-600]="categoryService.typeFilter() !== 'EXPENSE'"
+            >
+              Gastos
+            </button>
+            <button
+              type="button"
+              (click)="setTypeFilter('INCOME')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.typeFilter() === 'INCOME'"
+              [class.shadow-xs]="categoryService.typeFilter() === 'INCOME'"
+              [class.text-emerald-600]="categoryService.typeFilter() === 'INCOME'"
+              [class.text-slate-600]="categoryService.typeFilter() !== 'INCOME'"
+            >
+              Ingresos
+            </button>
+            <button
+              type="button"
+              (click)="setTypeFilter('BOTH')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.typeFilter() === 'BOTH'"
+              [class.shadow-xs]="categoryService.typeFilter() === 'BOTH'"
+              [class.text-sky-600]="categoryService.typeFilter() === 'BOTH'"
+              [class.text-slate-600]="categoryService.typeFilter() !== 'BOTH'"
+            >
+              Ambos
+            </button>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              (click)="setStatusFilter('ALL')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.statusFilter() === 'ALL'"
+              [class.shadow-xs]="categoryService.statusFilter() === 'ALL'"
+              [class.text-slate-900]="categoryService.statusFilter() === 'ALL'"
+              [class.text-slate-600]="categoryService.statusFilter() !== 'ALL'"
+            >
+              Cualquiera
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('ACTIVE')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.statusFilter() === 'ACTIVE'"
+              [class.shadow-xs]="categoryService.statusFilter() === 'ACTIVE'"
+              [class.text-emerald-700]="categoryService.statusFilter() === 'ACTIVE'"
+              [class.text-slate-600]="categoryService.statusFilter() !== 'ACTIVE'"
+            >
+              Activas
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('INACTIVE')"
+              class="px-3 py-1.5 rounded-lg transition-smooth cursor-pointer"
+              [class.bg-white]="categoryService.statusFilter() === 'INACTIVE'"
+              [class.shadow-xs]="categoryService.statusFilter() === 'INACTIVE'"
+              [class.text-slate-700]="categoryService.statusFilter() === 'INACTIVE'"
+              [class.text-slate-600]="categoryService.statusFilter() !== 'INACTIVE'"
+            >
+              Inactivas
+            </button>
+          </div>
+
+          @if (categoryService.searchQuery() || categoryService.typeFilter() !== 'ALL' || categoryService.statusFilter() !== 'ALL') {
+            <button
+              type="button"
+              (click)="resetFilters()"
+              class="px-3 py-1.5 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-smooth font-medium cursor-pointer"
+            >
+              Limpiar filtros
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         CATEGORIES GRID
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">
+          Categorías Registradas ({{ categoryService.filteredCategories().length }})
+        </h2>
+        <span class="text-xs text-slate-500">
+          Mostrando resultados filtrados en tiempo real
+        </span>
+      </div>
+
+      @if (categoryService.loading()) {
+        <div class="p-12 text-center bg-white rounded-2xl border border-slate-200">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mb-3"></div>
+          <p class="text-xs font-semibold text-slate-600">Sincronizando categorías con el servidor...</p>
+        </div>
+      } @else if (categoryService.filteredCategories().length === 0) {
+        <div class="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+          <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+            🏷️
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">No se encontraron categorías</h3>
+          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            No hay registros que coincidan con los criterios de búsqueda o filtros seleccionados.
+          </p>
+          <div class="mt-4">
+            <app-button variant="secondary" size="sm" (clicked)="resetFilters()">
+              Restablecer Filtros
+            </app-button>
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (category of categoryService.filteredCategories(); track category.id) {
+            <app-category-card
+              [category]="category"
+              (edit)="openEditModal($event)"
+              (toggleStatus)="handleToggleStatus($event)"
+              (delete)="openDeleteModal($event)"
+            />
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL: CREAR NUEVA CATEGORÍA
+       ═══════════════════════════════════════════════════════════════════════ -->
+  @if (showCreateModal()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-scale-in">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              🏷️
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Nueva Categoría Financiera</h3>
+              <p class="text-[11px] text-slate-500">Endpoint: POST /api/v1/categories</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="closeCreateModal()"
+            class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer transition-smooth"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        @if (createError()) {
+          <div class="p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold">
+            {{ createError() }}
+          </div>
+        }
+
+        <div class="space-y-4 text-xs">
+          <!-- Nombre -->
+          <app-form-field label="Nombre de la Categoría" [required]="true" hint="Ej: Alimentación, Transporte, Salario">
+            <app-input
+              placeholder="Nombre descriptivo (máx 100 caracteres)"
+              [value]="createName()"
+              (valueChange)="createName.set($event)"
+            />
+          </app-form-field>
+
+          <!-- Tipo de Categoría -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1.5">
+              Tipo de Categoría <span class="text-rose-500">*</span>
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                (click)="createType.set('EXPENSE')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-rose-500]="createType() === 'EXPENSE'"
+                [class.bg-rose-50]="createType() === 'EXPENSE'"
+                [class.text-rose-700]="createType() === 'EXPENSE'"
+                [class.border-slate-200]="createType() !== 'EXPENSE'"
+                [class.text-slate-600]="createType() !== 'EXPENSE'"
+              >
+                <div class="text-base">📉</div>
+                <div>Gasto</div>
+                <div class="text-[9px] text-slate-400 font-mono">EXPENSE</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="createType.set('INCOME')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-emerald-500]="createType() === 'INCOME'"
+                [class.bg-emerald-50]="createType() === 'INCOME'"
+                [class.text-emerald-700]="createType() === 'INCOME'"
+                [class.border-slate-200]="createType() !== 'INCOME'"
+                [class.text-slate-600]="createType() !== 'INCOME'"
+              >
+                <div class="text-base">📈</div>
+                <div>Ingreso</div>
+                <div class="text-[9px] text-slate-400 font-mono">INCOME</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="createType.set('BOTH')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-sky-500]="createType() === 'BOTH'"
+                [class.bg-sky-50]="createType() === 'BOTH'"
+                [class.text-sky-700]="createType() === 'BOTH'"
+                [class.border-slate-200]="createType() !== 'BOTH'"
+                [class.text-slate-600]="createType() !== 'BOTH'"
+              >
+                <div class="text-base">🔄</div>
+                <div>Ambos</div>
+                <div class="text-[9px] text-slate-400 font-mono">BOTH</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Descripción Adicional (Opcional)
+            </label>
+            <textarea
+              rows="3"
+              placeholder="Detalla qué gastos o ingresos deben asignarse a esta categoría..."
+              [value]="createDescription()"
+              (input)="createDescription.set($any($event.target).value)"
+              class="w-full p-3 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <app-button variant="ghost" (clicked)="closeCreateModal()">
+            Cancelar
+          </app-button>
+          <app-button variant="primary" [disabled]="!createName().trim()" (clicked)="submitCreate()">
+            Crear Categoría
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL: EDITAR CATEGORÍA
+       ═══════════════════════════════════════════════════════════════════════ -->
+  @if (showEditModal()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-scale-in">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              ✏️
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Editar Categoría #{{ editingCategory()?.id }}</h3>
+              <p class="text-[11px] text-slate-500">Endpoint: PUT /api/v1/categories/&#123;id&#125;</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer transition-smooth"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        @if (editError()) {
+          <div class="p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold">
+            {{ editError() }}
+          </div>
+        }
+
+        <div class="space-y-4 text-xs">
+          <!-- Nombre -->
+          <app-form-field label="Nombre de la Categoría" [required]="true">
+            <app-input
+              placeholder="Nombre de la categoría"
+              [value]="editName()"
+              (valueChange)="editName.set($event)"
+            />
+          </app-form-field>
+
+          <!-- Tipo -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1.5">
+              Tipo de Categoría
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                (click)="editType.set('EXPENSE')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-rose-500]="editType() === 'EXPENSE'"
+                [class.bg-rose-50]="editType() === 'EXPENSE'"
+                [class.text-rose-700]="editType() === 'EXPENSE'"
+                [class.border-slate-200]="editType() !== 'EXPENSE'"
+                [class.text-slate-600]="editType() !== 'EXPENSE'"
+              >
+                <div class="text-base">📉</div>
+                <div>Gasto</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="editType.set('INCOME')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-emerald-500]="editType() === 'INCOME'"
+                [class.bg-emerald-50]="editType() === 'INCOME'"
+                [class.text-emerald-700]="editType() === 'INCOME'"
+                [class.border-slate-200]="editType() !== 'INCOME'"
+                [class.text-slate-600]="editType() !== 'INCOME'"
+              >
+                <div class="text-base">📈</div>
+                <div>Ingreso</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="editType.set('BOTH')"
+                class="p-2.5 rounded-xl border text-center font-semibold transition-smooth cursor-pointer"
+                [class.border-sky-500]="editType() === 'BOTH'"
+                [class.bg-sky-50]="editType() === 'BOTH'"
+                [class.text-sky-700]="editType() === 'BOTH'"
+                [class.border-slate-200]="editType() !== 'BOTH'"
+                [class.text-slate-600]="editType() !== 'BOTH'"
+              >
+                <div class="text-base">🔄</div>
+                <div>Ambos</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado Activo / Inactivo -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div>
+              <span class="font-semibold text-slate-800 block">Estado Operativo</span>
+              <span class="text-[11px] text-slate-500">
+                {{ editActive() ? 'La categoría está habilitada para transacciones' : 'La categoría está deshabilitada' }}
+              </span>
+            </div>
+            <button
+              type="button"
+              (click)="editActive.update(v => !v)"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-smooth cursor-pointer"
+              [class.bg-emerald-100]="editActive()"
+              [class.text-emerald-800]="editActive()"
+              [class.bg-slate-200]="!editActive()"
+              [class.text-slate-700]="!editActive()"
+            >
+              {{ editActive() ? 'Activa' : 'Inactiva' }}
+            </button>
+          </div>
+
+          <!-- Descripción -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Descripción
+            </label>
+            <textarea
+              rows="3"
+              [value]="editDescription()"
+              (input)="editDescription.set($any($event.target).value)"
+              class="w-full p-3 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <app-button variant="ghost" (clicked)="closeEditModal()">
+            Cancelar
+          </app-button>
+          <app-button variant="primary" [disabled]="!editName().trim()" (clicked)="submitEdit()">
+            Guardar Cambios
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL: CONFIRMACIÓN DE DESACTIVACIÓN (DELETE SUAVE)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  @if (showDeleteModal()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+        <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <div class="text-center">
+          <h3 class="text-base font-bold text-slate-900">¿Desactivar Categoría?</h3>
+          <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+            Se realizará una <strong>desactivación lógica</strong> (active = false) de la categoría
+            <strong class="text-slate-800">"{{ deletingCategory()?.name }}"</strong> (ID #{{ deletingCategory()?.id }}).
+            El historial de transacciones pasadas permanecerá intacto en el sistema.
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+          <app-button variant="ghost" (clicked)="closeDeleteModal()">
+            Cancelar
+          </app-button>
+          <app-button variant="danger" (clicked)="confirmDelete()">
+            Confirmar Desactivación
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+</app-main-layout>
