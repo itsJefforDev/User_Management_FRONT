@@ -1,3 +1,5 @@
+import { Role } from '../interfaces/role.interface';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -6,14 +8,15 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   type?: string;
-  role?: string;
+  role?: Role[];
   email?: string;
   name?: string;
+
   user?: {
     id?: number | string;
     email: string;
     name: string;
-    role: string;
+    role: Role[];
     status?: string;
   };
 }
