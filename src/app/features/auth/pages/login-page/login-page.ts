@@ -25,7 +25,11 @@ export class LoginPageComponent implements OnInit {
   }
 
   onLoginSuccess(res: LoginResponse) {
-    const role = (res.role || res.user?.role || '').toUpperCase();
+      const role = (
+    res.role?.[0]?.name ||
+    res.user?.role?.[0]?.name ||
+    ''
+  ).toUpperCase();
     if (role.includes('ADMIN')) {
       this.router.navigate(['/admin']);
     } else {

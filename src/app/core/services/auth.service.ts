@@ -2,12 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import {
-  LoginRequest,
-  LoginResponse,
-  CreateUserRequest,
-  UserResponse,
-} from '../models/auth.model';
+import { LoginRequest, LoginResponse, CreateUserRequest, UserResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +29,10 @@ export class AuthService {
 
   readonly userRole = computed(() => {
     const user = this.currentUser();
-    return (user?.role || user?.user?.role || 'ROLE_USER').toUpperCase();
+
+    const role = user?.role?.[0]?.name || user?.user?.role?.[0]?.name || 'ROLE_USER';
+
+    return role.toUpperCase();
   });
 
   readonly isAdmin = computed(() => {
@@ -63,7 +61,7 @@ export class AuthService {
         catchError(() => {
           // Fallback para pruebas locales si el backend no está corriendo
           return of(this.knownUsers.has(normalizedEmail));
-        })
+        }),
       );
   }
 
@@ -72,22 +70,22 @@ export class AuthService {
    */
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
-      catchError((error) => {
-        // Fallback para modo offline/demo local si el backend no responde
-        const normalizedEmail = request.email.trim().toLowerCase();
-        if (this.knownUsers.has(normalizedEmail) && request.password) {
-          const userMeta = this.knownUsers.get(normalizedEmail)!;
-          const mockResponse: LoginResponse = {
-            token: 'mock-jwt-token-' + Date.now(),
-            role: userMeta.role,
-            email: normalizedEmail,
-            name: userMeta.name,
-          };
-          return of(mockResponse);
-        }
-        return throwError(() => error);
-      }),
-      tap((response) => this.handleAuthSuccess(response))
+      // catchError((error) => {
+      //   // Fallback para modo offline/demo local si el backend no responde
+      //   const normalizedEmail = request.email.trim().toLowerCase();
+      //   if (this.knownUsers.has(normalizedEmail) && request.password) {
+      //     const userMeta = this.knownUsers.get(normalizedEmail)!;
+      //     const mockResponse: LoginResponse = {
+      //       token: 'mock-jwt-token-' + Date.now(),
+      //       role: userMeta.role,
+      //       email: normalizedEmail,
+      //       name: userMeta.name,
+      //     };
+      //     return of(mockResponse);
+      //   }
+      //   return throwError(() => error);
+      // }),
+      tap((response) => this.handleAuthSuccess(response)),
     );
   }
 
@@ -95,32 +93,30 @@ export class AuthService {
    * Registro de nuevo usuario (estado INACTIVE).
    */
   register(request: CreateUserRequest): Observable<UserResponse> {
-    return this.http
-      .post<UserResponse>(`${this.apiUrl}/register`, request)
-      .pipe(
-        catchError((error) => {
-          // Fallback en modo local
-          const normalizedEmail = request.email.trim().toLowerCase();
-          this.knownUsers.set(normalizedEmail, {
-            role: 'ROLE_USER',
-            name: request.name,
-          });
-          const mockCreatedUser: UserResponse = {
-            id: Date.now(),
-            name: request.name,
-            email: normalizedEmail,
-            role: 'ROLE_USER',
-            status: 'INACTIVE',
-          };
-          return of(mockCreatedUser);
-        }),
-        tap((res) => {
-          this.knownUsers.set(res.email.toLowerCase(), {
-            role: res.role || 'ROLE_USER',
-            name: res.name,
-          });
-        })
-      );
+    return this.http.post<UserResponse>(`${this.apiUrl}/register`, request).pipe(
+      catchError((error) => {
+        // Fallback en modo local
+        const normalizedEmail = request.email.trim().toLowerCase();
+        this.knownUsers.set(normalizedEmail, {
+          role: 'ROLE_USER',
+          name: request.name,
+        });
+        const mockCreatedUser: UserResponse = {
+          id: Date.now(),
+          name: request.name,
+          email: normalizedEmail,
+          role: 'ROLE_USER',
+          status: 'INACTIVE',
+        };
+        return of(mockCreatedUser);
+      }),
+      tap((res) => {
+        this.knownUsers.set(res.email.toLowerCase(), {
+          role: res.role || 'ROLE_USER',
+          name: res.name,
+        });
+      }),
+    );
   }
 
   /**
@@ -138,7 +134,7 @@ export class AuthService {
             return of('Cuenta activada exitosamente');
           }
           return throwError(() => new Error('Token de verificación inválido o expirado'));
-        })
+        }),
       );
   }
 
