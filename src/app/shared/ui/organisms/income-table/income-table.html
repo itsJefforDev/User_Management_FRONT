@@ -1,0 +1,77 @@
+<div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-xs">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <tr>
+          <th scope="col" class="py-3.5 pl-6 pr-3">Fecha</th>
+          <th scope="col" class="px-3 py-3.5">Descripción</th>
+          <th scope="col" class="px-3 py-3.5">Categoría</th>
+          <th scope="col" class="px-3 py-3.5">Cuenta</th>
+          <th scope="col" class="px-3 py-3.5">Tipo</th>
+          <th scope="col" class="px-3 py-3.5 text-right">Valor</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-500 text-sm">
+              <div class="inline-flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Cargando ingresos...
+              </div>
+            </td>
+          </tr>
+        } @else if (incomes().length === 0) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-500 text-sm">
+              No se encontraron ingresos que coincidan con el criterio.
+            </td>
+          </tr>
+        } @else {
+          @for (income of incomes(); track income.id) {
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-6 pr-3 text-xs font-mono text-slate-600">
+                {{ formatDate(income.date) }}
+              </td>
+
+              <td class="px-3 py-4">
+                <div class="font-semibold text-slate-900">{{ income.description }}</div>
+                @if (income.observations) {
+                  <div class="text-xs text-slate-500 line-clamp-1 max-w-xs">{{ income.observations }}</div>
+                }
+              </td>
+
+              <td class="whitespace-nowrap px-3 py-4 text-slate-700">{{ income.categoryName }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-slate-700">{{ income.accountName }}</td>
+
+              <td class="whitespace-nowrap px-3 py-4">
+                <app-badge [variant]="typeVariant(income.incomeType)" size="sm">
+                  {{ typeLabel(income.incomeType) }}
+                </app-badge>
+              </td>
+
+              <td class="whitespace-nowrap px-3 py-4 text-right font-bold text-emerald-600">
+                +{{ formatCurrency(income.amount) }}
+              </td>
+
+              <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right">
+                <div class="flex justify-end gap-1.5">
+                  <app-button variant="ghost" size="sm" (clicked)="editIncome.emit(income)">
+                    Editar
+                  </app-button>
+                  <app-button variant="danger" size="sm" (clicked)="deleteIncome.emit(income)">
+                    Eliminar
+                  </app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
