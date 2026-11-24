@@ -105,6 +105,12 @@ export class NavbarComponent {
     this.router.navigate(['/categories']);
   }
 
+  goToExpenses() {
+  this.closeDropdown();
+  this.closeMobileMenu();
+  this.router.navigate(['/expenses']);
+}
+
   openEditProfile() {
     this.closeDropdown();
     this.closeMobileMenu();
