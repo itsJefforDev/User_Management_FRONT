@@ -11,6 +11,7 @@ import { CategoriesPageComponent } from './features/categories/pages/categories-
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import {ExpensesPageComponent} from './features/expenses/pages/expenses-page/expenses-page'
+import {IncomesPageComponent} from './features/incomes/pages/incomes-page/incomes-page'
 
 export const routes: Routes = [
   // ─── Rutas públicas ───────────────────────────────────────────────
@@ -64,6 +65,8 @@ export const routes: Routes = [
   },
 
   { path: 'expenses', component: ExpensesPageComponent, canActivate: [authGuard] },
+
+  { path: 'incomes', component: IncomesPageComponent, canActivate: [authGuard] },
 
   // ─── Ruta comodín ─────────────────────────────────────────────────
   {

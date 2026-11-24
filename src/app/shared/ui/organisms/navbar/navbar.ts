@@ -99,17 +99,23 @@ export class NavbarComponent {
     this.router.navigate(['/accounts']);
   }
 
-    goToCategories() {
+  goToCategories() {
     this.closeDropdown();
     this.closeMobileMenu();
     this.router.navigate(['/categories']);
   }
 
   goToExpenses() {
-  this.closeDropdown();
-  this.closeMobileMenu();
-  this.router.navigate(['/expenses']);
-}
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/expenses']);
+  }
+
+  goToIncomes() {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/incomes']);
+  }
 
   openEditProfile() {
     this.closeDropdown();
