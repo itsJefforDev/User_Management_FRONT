@@ -116,6 +116,11 @@ export class NavbarComponent {
     this.closeMobileMenu();
     this.router.navigate(['/incomes']);
   }
+  goToSavings() {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/savings']);
+  }
 
   openEditProfile() {
     this.closeDropdown();

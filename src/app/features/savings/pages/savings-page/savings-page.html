@@ -1,0 +1,364 @@
+<app-main-layout appTitle="Mis Ahorros">
+  <div class="space-y-6 animate-fade-in">
+    @if (savingService.error()) {
+      <app-alert variant="danger" [dismissible]="true">
+        {{ savingService.error() }}
+      </app-alert>
+    }
+
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between pb-5 border-b border-slate-200">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Metas de Ahorro</h1>
+          <app-badge variant="info">{{ savingService.statusCounts().ALL }} metas</app-badge>
+        </div>
+        <p class="mt-1 text-sm text-slate-500">
+          Define objetivos, registra tus aportes y sigue el avance hacia cada meta.
+        </p>
+      </div>
+
+      <div class="mt-4 sm:mt-0 flex items-center gap-2">
+        <app-button variant="ghost" size="sm" (clicked)="reload()">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Sincronizar
+        </app-button>
+
+        <app-button variant="primary" (clicked)="openCreateGoal()">
+          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nueva Meta
+        </app-button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-linear-to-br from-indigo-900 via-indigo-800 to-indigo-950 rounded-2xl p-5 text-white shadow-md shadow-indigo-900/10 card-hover">
+        <div class="text-indigo-200 text-xs font-semibold">Total ahorrado</div>
+        <div class="text-2xl font-extrabold mt-3 tracking-tight">
+          {{ formatCurrency(savingService.summary().saved) }}
+        </div>
+        <div class="mt-3 h-1.5 rounded-full bg-indigo-700/60 overflow-hidden">
+          <div class="h-1.5 rounded-full bg-emerald-400" [style.width.%]="savingService.summary().percent"></div>
+        </div>
+        <div class="mt-1.5 text-[11px] text-indigo-300">
+          {{ savingService.summary().percent.toFixed(1) }}% de {{ formatCurrency(savingService.summary().target) }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Pendiente por ahorrar</div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ formatCurrency(savingService.summary().pending) }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500">En metas activas</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Metas activas</div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">{{ savingService.summary().active }}</div>
+        <div class="mt-2 text-[11px]">
+          @if (savingService.summary().dueSoon > 0) {
+            <span class="text-amber-600 font-semibold">
+              {{ savingService.summary().dueSoon }} próxima(s) a su fecha objetivo
+            </span>
+          } @else {
+            <span class="text-slate-500">Sin vencimientos cercanos</span>
+          }
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Metas cumplidas</div>
+        <div class="text-2xl font-bold text-emerald-600 mt-3">{{ savingService.summary().completed }}</div>
+        <div class="mt-2 text-[11px] text-slate-500">Objetivos alcanzados</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar meta por nombre o descripción..."
+            [value]="savingService.searchQuery()"
+            (input)="onSearch($event)"
+            class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+          />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          @for (f of statusFilters; track f.value) {
+            <button
+              type="button"
+              (click)="savingService.setStatusFilter(f.value)"
+              class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+              [class.bg-indigo-600]="savingService.statusFilter() === f.value"
+              [class.text-white]="savingService.statusFilter() === f.value"
+              [class.bg-slate-100]="savingService.statusFilter() !== f.value"
+              [class.text-slate-700]="savingService.statusFilter() !== f.value"
+            >
+              {{ f.label }} ({{ savingService.statusCounts()[f.value] }})
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Metas -->
+    @if (savingService.loading() && savingService.filteredGoals().length === 0) {
+      <div class="py-16 text-center text-slate-500 text-sm bg-white rounded-2xl border border-slate-200">
+        <div class="inline-flex items-center gap-2">
+          <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Consultando metas de ahorro...</span>
+        </div>
+      </div>
+    } @else if (savingService.filteredGoals().length === 0) {
+      <div class="py-16 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3 text-xl">🎯</div>
+        <h3 class="text-base font-bold text-slate-800">No se encontraron metas</h3>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          {{ savingService.hasActiveFilters() ? 'No hay metas que coincidan con los filtros actuales.' : 'Aún no has creado metas de ahorro.' }}
+        </p>
+        <div class="mt-4">
+          @if (savingService.hasActiveFilters()) {
+            <app-button variant="secondary" size="sm" (clicked)="savingService.resetFilters()">Restablecer filtros</app-button>
+          } @else {
+            <app-button variant="primary" size="sm" (clicked)="openCreateGoal()">Crear primera meta</app-button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+        @for (goal of savingService.filteredGoals(); track goal.id) {
+          <app-saving-goal-card
+            [goal]="goal"
+            (contribute)="openContribution($event)"
+            (viewHistory)="openHistory($event)"
+            (edit)="openEditGoal($event)"
+            (cancelGoal)="openCancelModal($event)"
+          />
+        }
+      </div>
+    }
+
+    <!-- ═══════ MODAL CREAR / EDITAR META ═══════ -->
+    @if (showGoalModal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">🎯</div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">{{ editingGoal() ? 'Editar Meta' : 'Nueva Meta de Ahorro' }}</h3>
+                @if (editingGoal()) {
+                  <p class="text-xs text-slate-500">
+                    Ahorrado: {{ formatCurrency(editingGoal()!.currentAmount) }}
+                  </p>
+                }
+              </div>
+            </div>
+            <button type="button" (click)="closeGoalModal()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (goalError()) {
+            <app-alert variant="danger">{{ goalError() }}</app-alert>
+          }
+
+          <div class="space-y-4 text-sm">
+            <app-form-field label="Nombre de la meta" [required]="true">
+              <app-input placeholder="Ej. Comprar computador, Fondo de emergencia" [value]="goalName()" (valueChange)="goalName.set($event)" />
+            </app-form-field>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <app-form-field label="Monto objetivo (COP)" [required]="true">
+                <app-input type="number" placeholder="0" [value]="goalTarget()" (valueChange)="goalTarget.set($event)" />
+              </app-form-field>
+
+              <app-form-field label="Fecha objetivo" [required]="true">
+                <app-input type="date" [value]="goalDate()" (valueChange)="goalDate.set($event)" />
+              </app-form-field>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Descripción (opcional)
+              </label>
+              <textarea
+                rows="2"
+                placeholder="¿Para qué estás ahorrando?"
+                [value]="goalDescription()"
+                (input)="goalDescription.set($any($event.target).value)"
+                class="w-full p-3 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeGoalModal()">Cancelar</app-button>
+            <app-button variant="primary" [loading]="goalLoading()" (clicked)="submitGoal()">
+              {{ editingGoal() ? 'Guardar Cambios' : 'Crear Meta' }}
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════ MODAL REGISTRAR APORTE ═══════ -->
+    @if (showContribModal() && contribGoal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Registrar Aporte</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ contribGoal()!.name }} &bull; Pendiente: {{ formatCurrency(contribPending()) }}
+              </p>
+            </div>
+            <button type="button" (click)="closeContribModal()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (contribError()) {
+            <app-alert variant="danger">{{ contribError() }}</app-alert>
+          }
+
+          <div class="space-y-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <app-form-field label="Monto (COP)" [required]="true">
+                <app-input type="number" placeholder="0" [value]="contribAmount()" (valueChange)="contribAmount.set($event)" />
+              </app-form-field>
+
+              <app-form-field label="Fecha" [required]="true">
+                <app-input type="date" [value]="contribDate()" (valueChange)="contribDate.set($event)" />
+              </app-form-field>
+            </div>
+
+            <div class="-mt-2">
+              <button type="button" (click)="fillPending()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                Completar la meta ({{ formatCurrency(contribPending()) }})
+              </button>
+            </div>
+
+            <app-form-field label="Cuenta de origen (opcional)">
+              <select (change)="onContribAccountChange($event)" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                <option value="" [selected]="contribAccountId() === null">Sin cuenta asociada</option>
+                @for (a of activeAccounts(); track a.id) {
+                  <option [value]="a.id" [selected]="a.id === contribAccountId()">
+                    {{ a.name }} ({{ formatCurrency(a.balance) }})
+                  </option>
+                }
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Notas (opcional)">
+              <app-input placeholder="Ej. Ahorro de quincena" [value]="contribNotes()" (valueChange)="contribNotes.set($event)" />
+            </app-form-field>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeContribModal()">Cancelar</app-button>
+            <app-button variant="primary" [loading]="contribLoading()" (clicked)="submitContribution()">
+              Registrar Aporte
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════ MODAL HISTORIAL DE APORTES ═══════ -->
+    @if (showHistoryModal() && historyGoal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Historial de Aportes</h3>
+              <p class="text-xs text-slate-500 mt-0.5">{{ historyGoal()!.name }}</p>
+            </div>
+            <button type="button" (click)="closeHistory()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (historyLoading()) {
+            <div class="py-10 text-center text-sm text-slate-500">Cargando aportes...</div>
+          } @else if (historyError()) {
+            <app-alert variant="danger">{{ historyError() }}</app-alert>
+          } @else if (historyItems().length === 0) {
+            <div class="py-10 text-center text-sm text-slate-500">Esta meta aún no tiene aportes registrados.</div>
+          } @else {
+            <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-xl">
+              @for (c of historyItems(); track c.id) {
+                <div class="px-4 py-3 flex items-center justify-between text-xs">
+                  <div class="min-w-0">
+                    <div class="font-semibold text-slate-800">{{ formatDate(c.date) }}</div>
+                    <div class="text-slate-500 truncate">
+                      {{ c.notes || 'Sin notas' }}
+                      @if (c.accountName) { &bull; {{ c.accountName }} }
+                    </div>
+                  </div>
+                  <div class="font-bold text-emerald-600 whitespace-nowrap">+{{ formatCurrency(c.amount) }}</div>
+                </div>
+              }
+            </div>
+
+            <div class="flex items-center justify-between text-xs px-1">
+              <span class="text-slate-500">{{ historyItems().length }} aporte(s)</span>
+              <span class="font-bold text-slate-800">Total: {{ formatCurrency(historyTotal()) }}</span>
+            </div>
+          }
+
+          <div class="flex justify-end pt-3 border-t border-slate-100">
+            <app-button variant="secondary" (clicked)="closeHistory()">Cerrar</app-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════ MODAL CANCELAR META ═══════ -->
+    @if (showCancelModal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+
+          <div class="text-center">
+            <h3 class="text-base font-bold text-slate-900">¿Cancelar meta?</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              La meta <strong class="text-slate-800">"{{ cancellingGoal()?.name }}"</strong> pasará a estado
+              <strong>Cancelada</strong> y ya no recibirá aportes. Su historial de aportes se conserva.
+            </p>
+          </div>
+
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeCancelModal()">Volver</app-button>
+            <app-button variant="danger" (clicked)="confirmCancel()">Cancelar Meta</app-button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</app-main-layout>
