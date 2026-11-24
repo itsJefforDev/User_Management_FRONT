@@ -1,0 +1,77 @@
+<div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-xs">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <tr>
+          <th scope="col" class="py-3.5 pl-6 pr-3">Fecha</th>
+          <th scope="col" class="px-3 py-3.5">Descripción</th>
+          <th scope="col" class="px-3 py-3.5">Categoría</th>
+          <th scope="col" class="px-3 py-3.5">Cuenta</th>
+          <th scope="col" class="px-3 py-3.5">Tipo</th>
+          <th scope="col" class="px-3 py-3.5 text-right">Valor</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-500 text-sm">
+              <div class="inline-flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Cargando gastos...
+              </div>
+            </td>
+          </tr>
+        } @else if (expenses().length === 0) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-500 text-sm">
+              No se encontraron gastos que coincidan con el criterio.
+            </td>
+          </tr>
+        } @else {
+          @for (expense of expenses(); track expense.id) {
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-6 pr-3 text-xs font-mono text-slate-600">
+                {{ formatDate(expense.date) }}
+              </td>
+
+              <td class="px-3 py-4">
+                <div class="font-semibold text-slate-900">{{ expense.description }}</div>
+                @if (expense.observations) {
+                  <div class="text-xs text-slate-500 line-clamp-1 max-w-xs">{{ expense.observations }}</div>
+                }
+              </td>
+
+              <td class="whitespace-nowrap px-3 py-4 text-slate-700">{{ expense.categoryName }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-slate-700">{{ expense.accountName }}</td>
+
+              <td class="whitespace-nowrap px-3 py-4">
+                <app-badge [variant]="typeVariant(expense.expenseType)" size="sm">
+                  {{ typeLabel(expense.expenseType) }}
+                </app-badge>
+              </td>
+
+              <td class="whitespace-nowrap px-3 py-4 text-right font-bold text-rose-600">
+                -{{ formatCurrency(expense.amount) }}
+              </td>
+
+              <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right">
+                <div class="flex justify-end gap-1.5">
+                  <app-button variant="ghost" size="sm" (clicked)="editExpense.emit(expense)">
+                    Editar
+                  </app-button>
+                  <app-button variant="danger" size="sm" (clicked)="deleteExpense.emit(expense)">
+                    Eliminar
+                  </app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

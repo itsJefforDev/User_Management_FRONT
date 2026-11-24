@@ -1,0 +1,341 @@
+<app-main-layout appTitle="Mis Gastos">
+  <div class="space-y-6 animate-fade-in">
+    <!-- Error global del servicio -->
+    @if (expenseService.error()) {
+      <app-alert variant="danger" [dismissible]="true">
+        {{ expenseService.error() }}
+      </app-alert>
+    }
+
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between pb-5 border-b border-slate-200">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Mis Gastos</h1>
+          <app-badge variant="info">{{ expenseService.allExpenses().length }} registrados</app-badge>
+        </div>
+        <p class="mt-1 text-sm text-slate-500">
+          Registra, clasifica y analiza tus egresos. Cada gasto se asocia a una categoría y a una cuenta.
+        </p>
+      </div>
+
+      <div class="mt-4 sm:mt-0 flex items-center gap-2">
+        <app-button variant="ghost" size="sm" (clicked)="reload()">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Sincronizar
+        </app-button>
+
+        <app-button variant="primary" (clicked)="openCreateModal()">
+          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nuevo Gasto
+        </app-button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-linear-to-br from-rose-700 via-rose-600 to-rose-800 rounded-2xl p-5 text-white shadow-md shadow-rose-900/10 card-hover">
+        <div class="text-rose-100 text-xs font-semibold">Total gastado</div>
+        <div class="text-2xl font-extrabold mt-3 tracking-tight">
+          {{ formatCurrency(expenseService.summary().total) }}
+        </div>
+        <div class="mt-2 text-[11px] text-rose-100">
+          {{ expenseService.summary().count }} movimientos
+          @if (expenseService.hasActiveFilters()) { (filtrados) }
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Promedio por gasto</div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ formatCurrency(expenseService.summary().average) }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500">Sobre los gastos visibles</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Mayor gasto</div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ expenseService.summary().max ? formatCurrency(expenseService.summary().max!.amount) : '—' }}
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500 truncate">
+          {{ expenseService.summary().max?.description || 'Sin movimientos' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs card-hover">
+        <div class="text-slate-500 text-xs font-semibold">Este mes</div>
+        <div class="text-2xl font-bold text-slate-900 mt-3">
+          {{ formatCurrency(expenseService.monthComparison().current) }}
+        </div>
+        <div class="mt-2 text-[11px] flex items-center gap-1.5">
+          @if (monthVariation() === null) {
+            <span class="text-slate-500">Sin datos del mes anterior</span>
+          } @else if (monthVariation()! > 0) {
+            <span class="text-rose-600 font-semibold">&uarr; {{ formatPercent(monthVariation()!) }}</span>
+            <span class="text-slate-500">vs. mes anterior</span>
+          } @else {
+            <span class="text-emerald-600 font-semibold">&darr; {{ formatPercent(monthVariation()!) }}</span>
+            <span class="text-slate-500">vs. mes anterior</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Gasto por categoría -->
+    @if (expenseService.byCategory().length > 0) {
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+        <h2 class="text-sm font-bold text-slate-900">Gasto por categoría</h2>
+        <p class="text-xs text-slate-500 mb-4">Categorías con mayor consumo sobre los gastos visibles</p>
+
+        <div class="space-y-3">
+          @for (item of expenseService.byCategory().slice(0, 5); track item.name) {
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700">{{ item.name }}</span>
+                <span class="text-slate-500">
+                  {{ formatCurrency(item.total) }} &bull; {{ item.percent.toFixed(1) }}%
+                </span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-2 rounded-full bg-indigo-500" [style.width.%]="item.percent"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+      <div class="relative">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por descripción, observación, categoría o cuenta..."
+          [value]="expenseService.searchQuery()"
+          (input)="onSearch($event)"
+          class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
+        <select (change)="onCategoryFilter($event)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+          <option value="ALL" [selected]="expenseService.categoryFilter() === 'ALL'">Todas las categorías</option>
+          @for (name of expenseService.categoryOptions(); track name) {
+            <option [value]="name" [selected]="expenseService.categoryFilter() === name">{{ name }}</option>
+          }
+        </select>
+
+        <select (change)="onAccountFilter($event)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+          <option value="ALL" [selected]="expenseService.accountFilter() === 'ALL'">Todas las cuentas</option>
+          @for (name of expenseService.accountOptions(); track name) {
+            <option [value]="name" [selected]="expenseService.accountFilter() === name">{{ name }}</option>
+          }
+        </select>
+
+        <select (change)="onTypeFilter($event)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+          <option value="ALL" [selected]="expenseService.typeFilter() === 'ALL'">Todos los tipos</option>
+          @for (t of expenseTypes; track t.value) {
+            <option [value]="t.value" [selected]="expenseService.typeFilter() === t.value">{{ t.label }}</option>
+          }
+        </select>
+
+        <input
+          type="date"
+          title="Desde"
+          [value]="expenseService.dateFrom()"
+          (change)="onDateFrom($event)"
+          class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+        />
+        <input
+          type="date"
+          title="Hasta"
+          [value]="expenseService.dateTo()"
+          (change)="onDateTo($event)"
+          class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+        />
+
+        <select (change)="onSort($event)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+          @for (s of sortOptions; track s.value) {
+            <option [value]="s.value" [selected]="expenseService.sortBy() === s.value">{{ s.label }}</option>
+          }
+        </select>
+      </div>
+
+      @if (expenseService.hasActiveFilters()) {
+        <div class="text-right">
+          <button
+            type="button"
+            (click)="expenseService.resetFilters()"
+            class="px-3 py-1.5 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-smooth font-medium cursor-pointer"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Tabla + paginación -->
+    <div class="space-y-3">
+      <app-expense-table
+        [expenses]="expenseService.pagedExpenses()"
+        [loading]="expenseService.loading()"
+        (editExpense)="openEditModal($event)"
+        (deleteExpense)="openDeleteModal($event)"
+      />
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <span>
+          Mostrando {{ expenseService.pageStart() }}&ndash;{{ expenseService.pageEnd() }}
+          de {{ expenseService.totalFiltered() }} gastos
+        </span>
+
+        <div class="flex items-center gap-2">
+          <app-button variant="outline" size="sm" [disabled]="expenseService.safePage() <= 1" (clicked)="expenseService.prevPage()">
+            &larr; Anterior
+          </app-button>
+          <span class="font-semibold text-slate-700">
+            Página {{ expenseService.safePage() }} / {{ expenseService.totalPages() }}
+          </span>
+          <app-button variant="outline" size="sm" [disabled]="expenseService.safePage() >= expenseService.totalPages()" (clicked)="expenseService.nextPage()">
+            Siguiente &rarr;
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ MODAL CREAR / EDITAR GASTO ═══════ -->
+    @if (showFormModal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">📉</div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">
+                  {{ editingExpense() ? 'Editar Gasto' : 'Registrar Gasto' }}
+                </h3>
+                @if (editingExpense()) {
+                  <p class="text-xs text-slate-500">ID #{{ editingExpense()!.id }}</p>
+                }
+              </div>
+            </div>
+            <button type="button" (click)="closeFormModal()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          @if (formError()) {
+            <app-alert variant="danger">{{ formError() }}</app-alert>
+          }
+
+          <div class="space-y-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <app-form-field label="Valor (COP)" [required]="true">
+                <app-input type="number" placeholder="0" [value]="formAmount()" (valueChange)="formAmount.set($event)" />
+              </app-form-field>
+
+              <app-form-field label="Fecha" [required]="true">
+                <app-input type="date" [value]="formDate()" (valueChange)="formDate.set($event)" />
+              </app-form-field>
+            </div>
+
+            <app-form-field label="Descripción" [required]="true">
+              <app-input placeholder="Ej. Supermercado, gasolina, recibo de luz" [value]="formDescription()" (valueChange)="formDescription.set($event)" />
+            </app-form-field>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <app-form-field label="Categoría" [required]="true">
+                <select (change)="onCategoryChange($event)" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                  <option value="" [selected]="formCategoryId() === null">Selecciona...</option>
+                  @for (c of expenseCategories(); track c.id) {
+                    <option [value]="c.id" [selected]="c.id === formCategoryId()">
+                      {{ c.name }}{{ c.active ? '' : ' (inactiva)' }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+
+              <app-form-field label="Cuenta de origen" [required]="true">
+                <select (change)="onAccountChange($event)" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                  <option value="" [selected]="formAccountId() === null">Selecciona...</option>
+                  @for (a of selectableAccounts(); track a.id) {
+                    <option [value]="a.id" [selected]="a.id === formAccountId()">
+                      {{ a.name }} ({{ formatCurrency(a.balance) }})
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+            </div>
+
+            <app-form-field label="Tipo de gasto">
+              <select (change)="onTypeChange($event)" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                @for (t of expenseTypes; track t.value) {
+                  <option [value]="t.value" [selected]="formType() === t.value">{{ t.label }}</option>
+                }
+              </select>
+            </app-form-field>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Observaciones (opcional)
+              </label>
+              <textarea
+                rows="2"
+                placeholder="Notas adicionales sobre este gasto..."
+                [value]="formObservations()"
+                (input)="formObservations.set($any($event.target).value)"
+                class="w-full p-3 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-smooth"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeFormModal()">Cancelar</app-button>
+            <app-button variant="primary" [loading]="formLoading()" (clicked)="submitForm()">
+              {{ editingExpense() ? 'Guardar Cambios' : 'Registrar Gasto' }}
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════ MODAL ELIMINAR GASTO ═══════ -->
+    @if (showDeleteModal()) {
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100 animate-scale-in">
+          <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+
+          <div class="text-center">
+            <h3 class="text-base font-bold text-slate-900">¿Eliminar gasto?</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Se eliminará el gasto
+              <strong class="text-slate-800">"{{ deletingExpense()?.description }}"</strong>
+              por
+              <strong class="text-slate-800">{{ formatCurrency(deletingExpense()?.amount || 0) }}</strong>
+              del {{ formatDate(deletingExpense()?.date) }}. Esta acción no se puede deshacer.
+            </p>
+          </div>
+
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <app-button variant="ghost" (clicked)="closeDeleteModal()">Cancelar</app-button>
+            <app-button variant="danger" (clicked)="confirmDelete()">Eliminar</app-button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</app-main-layout>
