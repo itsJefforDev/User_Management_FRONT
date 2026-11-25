@@ -13,6 +13,9 @@ import { adminGuard } from './core/guards/admin.guard';
 import { ExpensesPageComponent } from './features/expenses/pages/expenses-page/expenses-page';
 import { IncomesPageComponent } from './features/incomes/pages/incomes-page/incomes-page';
 import { SavingsPageComponent } from './features/savings/pages/savings-page/savings-page';
+import { ReportsPageComponent } from './features/reports/pages/reports-page/reports-page';
+
+
 
 
 SavingsPageComponent
@@ -72,6 +75,7 @@ export const routes: Routes = [
 
   { path: 'incomes', component: IncomesPageComponent, canActivate: [authGuard] },
   { path: 'savings', component: SavingsPageComponent, canActivate: [authGuard] },
+  { path: 'reports', component: ReportsPageComponent, canActivate: [authGuard] },
 
   // ─── Ruta comodín ─────────────────────────────────────────────────
   {

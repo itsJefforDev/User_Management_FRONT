@@ -1,0 +1,57 @@
+<div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-xs">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <tr>
+          @for (col of columns(); track col.key) {
+            <th scope="col" class="px-4 py-3.5 whitespace-nowrap" [class.text-right]="col.align === 'right'">
+              {{ col.label }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        @if (loading()) {
+          <tr>
+            <td [attr.colspan]="columns().length" class="py-12 text-center text-slate-500 text-sm">
+              Generando reporte...
+            </td>
+          </tr>
+        } @else if (rows().length === 0) {
+          <tr>
+            <td [attr.colspan]="columns().length" class="py-12 text-center text-slate-500 text-sm">
+              No hay datos para los filtros seleccionados.
+            </td>
+          </tr>
+        } @else {
+          @for (row of visibleRows(); track $index) {
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              @for (col of columns(); track col.key) {
+                <td
+                  class="px-4 py-3 text-slate-700"
+                  [class.text-right]="col.align === 'right'"
+                  [class.font-semibold]="col.format === 'currency'"
+                  [class.text-rose-600]="isNegative(col, row[col.key])"
+                  [class.whitespace-nowrap]="col.format !== 'text'"
+                >
+                  {{ formatValue(row[col.key], col.format) }}
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!showAll() && rows().length > pageSize()) {
+    <div class="no-print flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 bg-slate-50/60 text-xs text-slate-500">
+      <span>Mostrando {{ pageStart() }}&ndash;{{ pageEnd() }} de {{ rows().length }} registros</span>
+      <div class="flex items-center gap-2">
+        <app-button variant="outline" size="sm" [disabled]="safePage() <= 1" (clicked)="prev()">&larr; Anterior</app-button>
+        <span class="font-semibold text-slate-700">Página {{ safePage() }} / {{ totalPages() }}</span>
+        <app-button variant="outline" size="sm" [disabled]="safePage() >= totalPages()" (clicked)="next()">Siguiente &rarr;</app-button>
+      </div>
+    </div>
+  }
+</div>

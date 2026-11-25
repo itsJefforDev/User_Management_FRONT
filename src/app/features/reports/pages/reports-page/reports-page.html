@@ -1,0 +1,276 @@
+<app-main-layout appTitle="Reportes">
+  <div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="no-print sm:flex sm:items-center sm:justify-between pb-5 border-b border-slate-200">
+      <div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Reportes</h1>
+          <app-badge [variant]="authService.isAdmin() ? 'danger' : 'info'">
+            {{ authService.isAdmin() ? 'Vista de administrador' : 'Mi información' }}
+          </app-badge>
+        </div>
+        <p class="mt-1 text-sm text-slate-500">
+          Genera reportes con la información de tus módulos, aplica filtros y expórtalos.
+        </p>
+      </div>
+
+      <div class="mt-4 sm:mt-0 flex flex-wrap items-center gap-2">
+        <app-button variant="ghost" size="sm" (clicked)="reload()">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Actualizar datos
+        </app-button>
+        <app-button variant="outline" size="sm" (clicked)="exportCsv()">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exportar CSV
+        </app-button>
+        <app-button variant="primary" size="sm" (clicked)="exportPdf()">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Imprimir / PDF
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Selector de tipo de reporte -->
+    <div class="no-print grid grid-cols-2 md:grid-cols-4 gap-3">
+      @for (r of reportService.availableReports(); track r.value) {
+        <button
+          type="button"
+          (click)="selectType(r.value)"
+          class="text-left p-4 rounded-2xl border transition-smooth cursor-pointer card-hover"
+          [class.border-indigo-500]="reportService.reportType() === r.value"
+          [class.bg-indigo-50]="reportService.reportType() === r.value"
+          [class.ring-2]="reportService.reportType() === r.value"
+          [class.ring-indigo-200]="reportService.reportType() === r.value"
+          [class.border-slate-200]="reportService.reportType() !== r.value"
+          [class.bg-white]="reportService.reportType() !== r.value"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xl">{{ r.icon }}</span>
+            @if (r.adminOnly) {
+              <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">ADMIN</span>
+            }
+          </div>
+          <div class="mt-2 text-sm font-bold text-slate-900">{{ r.label }}</div>
+          <div class="text-[11px] text-slate-500 leading-snug">{{ r.description }}</div>
+        </button>
+      }
+    </div>
+
+    <!-- Filtros -->
+    <div class="no-print bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900">Filtros del reporte</h2>
+        <button type="button" (click)="reportService.resetFilters()" class="text-xs font-medium text-rose-600 hover:text-rose-800 cursor-pointer">
+          Restablecer
+        </button>
+      </div>
+
+      @if (hasFilter('date')) {
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            @for (p of presets; track p.value) {
+              <button
+                type="button"
+                (click)="applyPreset(p.value)"
+                class="px-3 py-1.5 rounded-lg font-medium transition-smooth cursor-pointer"
+                [class.bg-indigo-600]="reportService.preset() === p.value"
+                [class.text-white]="reportService.preset() === p.value"
+                [class.bg-slate-100]="reportService.preset() !== p.value"
+                [class.text-slate-700]="reportService.preset() !== p.value"
+              >
+                {{ p.label }}
+              </button>
+            }
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs max-w-md">
+            <label class="block">
+              <span class="block font-semibold text-slate-600 mb-1">Fecha inicial</span>
+              <input type="date" [value]="reportService.dateFrom()" (change)="onDateFrom($event)"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+            </label>
+            <label class="block">
+              <span class="block font-semibold text-slate-600 mb-1">Fecha final</span>
+              <input type="date" [value]="reportService.dateTo()" (change)="onDateTo($event)"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+            </label>
+          </div>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        @if (hasFilter('account')) {
+          <label class="block">
+            <span class="block font-semibold text-slate-600 mb-1">Cuenta</span>
+            <select (change)="onAccount($event)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+              <option value="ALL" [selected]="reportService.accountFilter() === 'ALL'">Todas las cuentas</option>
+              @for (name of reportService.accountOptions(); track name) {
+                <option [value]="name" [selected]="reportService.accountFilter() === name">{{ name }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (hasFilter('category')) {
+          <label class="block">
+            <span class="block font-semibold text-slate-600 mb-1">Categoría</span>
+            <select (change)="onCategory($event)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+              <option value="ALL" [selected]="reportService.categoryFilter() === 'ALL'">Todas las categorías</option>
+              @for (name of reportService.categoryOptions(); track name) {
+                <option [value]="name" [selected]="reportService.categoryFilter() === name">{{ name }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (hasFilter('movement')) {
+          <label class="block">
+            <span class="block font-semibold text-slate-600 mb-1">Tipo de movimiento</span>
+            <select (change)="onMovement($event)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+              <option value="ALL" [selected]="reportService.movementFilter() === 'ALL'">Ingresos y gastos</option>
+              <option value="INCOME" [selected]="reportService.movementFilter() === 'INCOME'">Solo ingresos</option>
+              <option value="EXPENSE" [selected]="reportService.movementFilter() === 'EXPENSE'">Solo gastos</option>
+            </select>
+          </label>
+        }
+
+        @if (hasFilter('status')) {
+          <label class="block">
+            <span class="block font-semibold text-slate-600 mb-1">
+              {{ reportService.reportType() === 'AUDIT' ? 'Resultado' : 'Estado' }}
+            </span>
+            <select (change)="onStatus($event)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500">
+              <option value="ALL" [selected]="reportService.statusFilter() === 'ALL'">Todos</option>
+              @for (s of reportService.statusOptions(); track s.value) {
+                <option [value]="s.value" [selected]="reportService.statusFilter() === s.value">{{ s.label }}</option>
+              }
+            </select>
+          </label>
+        }
+      </div>
+    </div>
+
+    <!-- ═══════ DOCUMENTO DEL REPORTE (lo que se imprime) ═══════ -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">{{ view().title }}</h2>
+            <p class="text-xs text-slate-500 mt-1">{{ view().description }}</p>
+          </div>
+          <div class="text-xs text-slate-500 sm:text-right space-y-0.5">
+            <div><span class="font-semibold text-slate-700">Período:</span> {{ reportService.periodText() }}</div>
+            <div><span class="font-semibold text-slate-700">Generado por:</span> {{ userName() }}</div>
+            <div><span class="font-semibold text-slate-700">Fecha:</span> {{ generatedAt }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (kpi of view().kpis; track kpi.label) {
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+            <div class="text-slate-500 text-xs font-semibold">{{ kpi.label }}</div>
+            <div class="text-2xl font-extrabold mt-3 tracking-tight" [class]="toneClass(kpi)">
+              {{ formatValue(kpi.value, kpi.format) }}
+            </div>
+            @if (kpi.hint) {
+              <div class="mt-2 text-[11px] text-slate-500 truncate">{{ kpi.hint }}</div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Evolución mensual -->
+      @if (view().evolution.length > 0) {
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Evolución mensual</h3>
+              <p class="text-xs text-slate-500">Valores por mes dentro del período seleccionado</p>
+            </div>
+            <div class="flex items-center gap-3 text-[11px] text-slate-600">
+              @if (view().evolutionSeries.includes('income')) {
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>Ingresos</span>
+              }
+              @if (view().evolutionSeries.includes('expense')) {
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-rose-500"></span>Gastos</span>
+              }
+            </div>
+          </div>
+
+          <div class="flex items-end gap-4 overflow-x-auto pb-1">
+            @for (p of view().evolution; track p.label) {
+              <div class="flex flex-col items-center gap-1.5 min-w-16 flex-1">
+                <div class="flex items-end justify-center gap-1 h-36 w-full">
+                  @if (view().evolutionSeries.includes('income')) {
+                    <div class="w-4 rounded-t bg-emerald-500 transition-all duration-500"
+                      [style.height.%]="pct(p.income)"
+                      [attr.title]="'Ingresos: ' + formatValue(p.income, 'currency')"></div>
+                  }
+                  @if (view().evolutionSeries.includes('expense')) {
+                    <div class="w-4 rounded-t bg-rose-500 transition-all duration-500"
+                      [style.height.%]="pct(p.expense)"
+                      [attr.title]="'Gastos: ' + formatValue(p.expense, 'currency')"></div>
+                  }
+                </div>
+                <span class="text-[11px] font-medium text-slate-600 whitespace-nowrap">{{ p.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Desgloses -->
+      @if (view().breakdowns.length > 0) {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          @for (b of view().breakdowns; track b.title) {
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs">
+              <h3 class="text-sm font-bold text-slate-900 mb-4">{{ b.title }}</h3>
+
+              @if (b.items.length === 0) {
+                <p class="text-xs text-slate-500">Sin datos para mostrar.</p>
+              } @else {
+                <div class="space-y-3">
+                  @for (item of b.items.slice(0, 6); track item.name) {
+                    <div>
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-slate-700 truncate pr-2">{{ item.name }}</span>
+                        <span class="text-slate-500 whitespace-nowrap">
+                          {{ formatValue(item.total, b.format) }} &bull; {{ item.percent.toFixed(1) }}%
+                        </span>
+                      </div>
+                      <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div class="h-2 rounded-full bg-indigo-500" [style.width.%]="item.percent"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Detalle -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">Detalle del reporte</h3>
+          <span class="text-xs text-slate-500">{{ view().rows.length }} registro(s)</span>
+        </div>
+        <app-report-table
+          [columns]="view().columns"
+          [rows]="view().rows"
+          [loading]="reportService.loading() && view().rows.length === 0"
+          [showAll]="printing()"
+        />
+      </div>
+    </div>
+  </div>
+</app-main-layout>
