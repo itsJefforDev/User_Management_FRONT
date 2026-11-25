@@ -127,17 +127,6 @@ export class AccountService {
     () => this.accountsSignal().filter((a) => a.active && a.type.toUpperCase() === 'CASH').length
   );
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.authService.token();
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-    });
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
-    }
-    return headers;
-  }
-
   setSearchQuery(q: string) {
     this.searchQuery.set(q);
   }
@@ -148,6 +137,30 @@ export class AccountService {
 
   setStatusFilter(status: string) {
     this.statusFilter.set(status);
+  }
+
+  /**
+   * NUEVO MÉTODO: Actualiza el saldo de una cuenta localmente.
+   * Sirve para que la interfaz reste o sume el dinero al instante
+   * cuando el backend no está disponible.
+   */
+  updateLocalBalance(accountId: number, amount: number): void {
+    this.accountsSignal.update((accounts) =>
+      accounts.map((acc) =>
+        acc.id === accountId ? { ...acc, balance: acc.balance + amount } : acc
+      )
+    );
+  }
+
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.token();
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
   }
 
   /**

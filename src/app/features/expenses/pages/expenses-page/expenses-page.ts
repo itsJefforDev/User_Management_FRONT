@@ -197,6 +197,19 @@ export class ExpensesPageComponent implements OnInit {
       next: (saved) => {
         this.formLoading.set(false);
         this.closeFormModal();
+
+        // --- LÓGICA DE ACTUALIZACIÓN LOCAL DEL SALDO ---
+        if (editing) {
+          // Si es edición, primero devolvemos el dinero a la cuenta antigua
+          const oldAccount = this.accountService.allAccounts().find((a) => a.name === editing.accountName);
+          if (oldAccount) {
+            this.accountService.updateLocalBalance(oldAccount.id, Number(editing.amount));
+          }
+        }
+        // Restamos el nuevo gasto a la cuenta seleccionada actualmente
+        this.accountService.updateLocalBalance(accountId, -amount);
+        // -----------------------------------------------
+
         this.accountService.loadAccountsByUser();
         this.notificationService.showSuccess(
           editing
@@ -229,6 +242,14 @@ export class ExpensesPageComponent implements OnInit {
 
     this.expenseService.delete(expense.id).subscribe({
       next: () => {
+        // --- LÓGICA DE ACTUALIZACIÓN LOCAL DEL SALDO ---
+        // Devolvemos el dinero a la cuenta porque el gasto se eliminó
+        const account = this.accountService.allAccounts().find((a) => a.name === expense.accountName);
+        if (account) {
+          this.accountService.updateLocalBalance(account.id, Number(expense.amount));
+        }
+        // -----------------------------------------------
+
         this.accountService.loadAccountsByUser();
         this.notificationService.showSuccess(
           `Gasto "${expense.description}" eliminado correctamente.`,
