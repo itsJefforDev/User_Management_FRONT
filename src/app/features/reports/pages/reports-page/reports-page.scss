@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+@media print {
+  :host ::ng-deep app-navbar,
+  :host ::ng-deep app-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  :host ::ng-deep main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
