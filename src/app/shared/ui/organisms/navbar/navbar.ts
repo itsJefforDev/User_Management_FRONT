@@ -10,11 +10,15 @@ import {
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AvatarComponent } from '../../atoms/avatar/avatar';
 import { BadgeComponent } from '../../atoms/badge/badge';
-import { ButtonComponent } from '../../atoms/button/button';
-import { InputComponent } from '../../atoms/input/input';
-import { FormFieldComponent } from '../../molecules/form-field/form-field';
+import { EditProfileModalComponent } from '../edit-profile-modal/edit-profile-modal';
 import { AuthService } from '../../../../core/services/auth.service';
 
+/**
+ * Navbar público.
+ * - Sin sesión: navbar tradicional (enlaces + iniciar sesión / registrarse).
+ * - Con sesión: solo el botón para entrar al espacio de trabajo y el avatar del usuario.
+ *   La navegación entre módulos vive en el sidebar del espacio de trabajo.
+ */
 @Component({
   selector: 'app-navbar',
   imports: [
@@ -22,9 +26,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     RouterLinkActive,
     AvatarComponent,
     BadgeComponent,
-    ButtonComponent,
-    InputComponent,
-    FormFieldComponent,
+    EditProfileModalComponent,
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
@@ -40,11 +42,6 @@ export class NavbarComponent {
   readonly isDropdownOpen = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly showEditProfileModal = signal<boolean>(false);
-
-  // Edit profile form state
-  readonly editName = signal<string>('');
-  readonly editEmail = signal<string>('');
-  readonly editSuccess = signal<boolean>(false);
 
   // Auth computed signals
   readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
@@ -77,83 +74,21 @@ export class NavbarComponent {
     this.isMobileMenuOpen.set(false);
   }
 
+  /** Entra al espacio de trabajo (inicio según el rol). */
   goToDashboard() {
     this.closeDropdown();
     this.closeMobileMenu();
-    if (this.isAdmin()) {
-      this.router.navigate(['/admin']);
-    } else {
-      this.router.navigate(['/user']);
-    }
-  }
-
-  goToUsersManagement() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/users-management']);
-  }
-
-  goToAccounts() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/accounts']);
-  }
-
-  goToCategories() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/categories']);
-  }
-
-  goToExpenses() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/expenses']);
-  }
-
-  goToIncomes() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/incomes']);
-  }
-  goToSavings() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/savings']);
-  }
-  goToReports() {
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate(['/reports']);
+    this.router.navigate([this.isAdmin() ? '/admin' : '/user']);
   }
 
   openEditProfile() {
     this.closeDropdown();
     this.closeMobileMenu();
-    this.editName.set(this.userName());
-    this.editEmail.set(this.userEmail());
-    this.editSuccess.set(false);
     this.showEditProfileModal.set(true);
   }
 
   closeEditProfile() {
     this.showEditProfileModal.set(false);
-    this.editSuccess.set(false);
-  }
-
-  saveProfile() {
-    const trimmedName = this.editName().trim();
-    if (!trimmedName) return;
-
-    this.authService.updateUserProfile({
-      name: trimmedName,
-      email: this.editEmail().trim() || undefined,
-    });
-
-    this.editSuccess.set(true);
-    setTimeout(() => {
-      this.closeEditProfile();
-    }, 900);
   }
 
   handleLogout() {

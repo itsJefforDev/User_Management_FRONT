@@ -47,6 +47,15 @@ export interface CheckEmailResponse {
   name?: string;
 }
 
+/** Edición del perfil del usuario autenticado (PUT /profile). */
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;        // Solo si cambió: exige emailCode
+  emailCode?: string;    // Código de 4 dígitos enviado al nuevo correo
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 /** Respuesta simple del backend: { message } */
 export interface MessageResponse {
   message: string;

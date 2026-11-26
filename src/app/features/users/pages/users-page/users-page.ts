@@ -273,7 +273,7 @@ export class UsersPageComponent implements OnInit {
           newPassword
             ? `Usuario "${updated.name}" actualizado. Contraseña temporal: ${newPassword} (vigencia: ${this.durationLabel(request.temporaryPasswordHours!)}).`
             : `Usuario "${updated.name}" actualizado correctamente.`,
-          newPassword ? 15000 : 3500
+          newPassword ? 15000 : 3500,
         );
       },
       error: (err) => {
@@ -299,16 +299,14 @@ export class UsersPageComponent implements OnInit {
   protected onDeleteUser(user: User) {
     if (
       !confirm(
-        `¿Estás seguro de desactivar al usuario "${user.name}"?\n\nEsto cambiará su estado a INACTIVE.`
+        `¿Estás seguro de desactivar al usuario "${user.name}"?\n\nEsto cambiará su estado a INACTIVE.`,
       )
     )
       return;
 
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
-        this.showSuccess(
-          `Usuario "${user.name}" desactivado correctamente.`
-        );
+        this.showSuccess(`Usuario "${user.name}" desactivado correctamente.`);
       },
       error: (err) => {
         alert(`Error: ${err.message}`);
@@ -330,4 +328,24 @@ export class UsersPageComponent implements OnInit {
   }
 
   protected getPrimaryRole = getPrimaryRole;
+
+  //Eliminar permanentemente usuario
+
+  protected onPermanentDeleteUser(user: User) {
+    if (
+      !confirm(
+        `⚠️ ADVERTENCIA: ¿Estás seguro de ELIMINAR PERMANENTEMENTE al usuario "${user.name}" (${user.email})?\n\nEsta acción borrará el registro de la base de datos y NO se puede deshacer.`,
+      )
+    )
+      return;
+
+    this.userService.permanentDeleteUser(user.id).subscribe({
+      next: () => {
+        this.showSuccess(`Usuario "${user.name}" eliminado permanentemente de la base de datos.`);
+      },
+      error: (err) => {
+        alert(`Error: ${err.message}`);
+      },
+    });
+  }
 }

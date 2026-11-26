@@ -109,7 +109,14 @@
                     size="sm"
                     (clicked)="deleteUser.emit(user)"
                   >
-                    Eliminar
+                    Inactivar
+                  </app-button>
+                  <app-button
+                    variant="secondary"
+                    size="sm"
+                    (clicked)="permanentDeleteUser.emit(user)"
+                  >
+                    Eliminar permanente
                   </app-button>
                 </div>
               </td>

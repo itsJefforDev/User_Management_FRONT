@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import {
@@ -8,6 +8,7 @@ import {
   CreateUserRequest,
   UserResponse,
   MessageResponse,
+  UpdateProfileRequest,
 } from '../models/auth.model';
 
 @Injectable({
@@ -16,6 +17,7 @@ import {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8080/userManagement/api/v1/auth';
+  private readonly profileUrl = 'http://localhost:8080/userManagement/api/v1/profile';
 
   // State signals
   readonly currentUser = signal<LoginResponse | null>(this.getStoredUser());
@@ -201,6 +203,45 @@ export class AuthService {
       currentPassword,
       newPassword,
     });
+  }
+
+  /** Headers con el JWT: el backend identifica al usuario por el token. */
+  private authHeaders(): { headers: HttpHeaders } {
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    const token = this.token();
+    if (token) headers = headers.set('Authorization', `Bearer ${token}`);
+    return { headers };
+  }
+
+  /** Perfil: envía un código de 4 dígitos al NUEVO correo antes de guardar el cambio. */
+  requestEmailChangeCode(email: string): Observable<MessageResponse> {
+    return this.http
+      .post<MessageResponse>(`${this.profileUrl}/email-code`, { email }, this.authHeaders())
+      .pipe(
+        catchError((error) =>
+          this.isOffline(error)
+            ? of({ message: 'Código enviado (modo local)' })
+            : throwError(() => error),
+        ),
+      );
+  }
+
+  /**
+   * Perfil: guarda nombre, correo (con código) y/o contraseña.
+   * El backend devuelve una sesión nueva (el token depende del correo) que reemplaza la actual.
+   */
+  updateProfile(request: UpdateProfileRequest): Observable<LoginResponse> {
+    return this.http.put<LoginResponse>(this.profileUrl, request, this.authHeaders()).pipe(
+      tap((response) => this.handleAuthSuccess(response)),
+      catchError((error) => {
+        // Demo local sin backend: solo actualiza nombre/correo en la sesión guardada
+        if (this.isOffline(error) && (!request.email || /^\d{4}$/.test(request.emailCode ?? ''))) {
+          this.updateUserProfile({ name: request.name ?? this.userDisplayName(), email: request.email });
+          return of(this.currentUser() as LoginResponse);
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   updateUserProfile(updates: { name: string; email?: string }) {

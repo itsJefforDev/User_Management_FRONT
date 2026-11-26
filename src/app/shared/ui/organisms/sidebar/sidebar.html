@@ -1,0 +1,87 @@
+<!-- Fondo oscuro del panel en móvil -->
+@if (sidebar.mobileOpen()) {
+  <div class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden animate-fade-fast" (click)="sidebar.closeMobile()"></div>
+}
+
+<aside
+  [class]="'fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:z-30 lg:shrink-0 ' + asideClass()"
+  aria-label="Navegación del espacio de trabajo"
+>
+  <!-- Logo -->
+  <div class="h-16 px-4 flex items-center justify-between border-b border-slate-100 shrink-0">
+    <a [routerLink]="homeRoute()" (click)="sidebar.closeMobile()" class="flex items-center gap-3 min-w-0">
+      <div class="h-9 w-9 shrink-0 rounded-xl bg-linear-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-extrabold text-lg shadow-sm shadow-indigo-200">
+        UM
+      </div>
+      <span [class]="'text-base font-bold text-slate-900 tracking-tight truncate ' + labelClass()">Mi Espacio</span>
+    </a>
+
+    <!-- Cerrar (móvil) -->
+    <button type="button" (click)="sidebar.closeMobile()" class="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 cursor-pointer" aria-label="Cerrar menú">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navegación -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+    @for (item of navItems(); track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive
+        #rla="routerLinkActive"
+        (click)="sidebar.closeMobile()"
+        [class]="itemClass(rla.isActive)"
+        [attr.title]="sidebar.collapsed() ? item.label : null"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+        </svg>
+        <span [class]="'truncate ' + labelClass()">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <!-- Usuario y acciones -->
+  <div class="px-3 py-3 border-t border-slate-100 space-y-1 shrink-0">
+    <div [class]="'flex items-center gap-3 px-2 py-2 ' + (sidebar.collapsed() ? 'lg:justify-center lg:px-0' : '')">
+      <app-avatar [name]="authService.userDisplayName()" size="sm" />
+      <div [class]="'min-w-0 ' + labelClass()">
+        <p class="text-xs font-semibold text-slate-800 truncate">{{ authService.userDisplayName() }}</p>
+        <p class="text-[11px] text-slate-500 truncate">{{ authService.userEmail() }}</p>
+      </div>
+    </div>
+
+    <button type="button" (click)="openProfile()" [class]="itemClass(false)" [attr.title]="sidebar.collapsed() ? 'Editar perfil' : null">
+      <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      <span [class]="'truncate ' + labelClass()">Editar perfil</span>
+    </button>
+
+    <button type="button" (click)="logout()" [class]="itemClass(false) + ' !text-rose-600 hover:!bg-rose-50'" [attr.title]="sidebar.collapsed() ? 'Cerrar sesión' : null">
+      <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+      <span [class]="'truncate ' + labelClass()">Cerrar sesión</span>
+    </button>
+
+    <!-- Expandir / colapsar (solo escritorio) -->
+    <button
+      type="button"
+      (click)="sidebar.toggleCollapsed()"
+      [class]="'hidden lg:flex ' + itemClass(false)"
+      [attr.title]="sidebar.collapsed() ? 'Expandir menú' : 'Contraer menú'"
+    >
+      <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        @if (sidebar.collapsed()) {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        } @else {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+        }
+      </svg>
+      <span [class]="'truncate ' + labelClass()">Contraer menú</span>
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,137 @@
+<div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-fast">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-scale-in">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">
+          {{ step() === 'verify' ? 'Verifica tu nuevo correo' : 'Editar Perfil' }}
+        </h3>
+      </div>
+      <button type="button" (click)="closed.emit()" class="text-slate-400 hover:text-slate-600 rounded-md p-1 cursor-pointer transition-smooth">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    @if (successMessage()) {
+      <app-alert variant="success">{{ successMessage() }}</app-alert>
+    }
+    @if (errorMessage()) {
+      <app-alert variant="danger" [dismissible]="true" (dismissed)="errorMessage.set(null)">{{ errorMessage() }}</app-alert>
+    }
+
+    <!-- ═══════ PASO 1: DATOS DEL PERFIL ═══════ -->
+    @if (step() === 'form') {
+      <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <app-avatar [name]="name() || authService.userDisplayName()" size="md" />
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-slate-800">Vista previa del avatar</p>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span class="text-[11px] text-slate-500">Rol asignado:</span>
+            <app-badge [variant]="authService.isAdmin() ? 'danger' : 'info'" size="sm">{{ authService.userRole() }}</app-badge>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <app-form-field label="Nombre Completo" [required]="true" [errorMessage]="errors()['name']">
+          <app-input placeholder="Ingresa tu nombre completo" [value]="name()" (valueChange)="updateField('name', $event)" />
+        </app-form-field>
+
+        <app-form-field
+          label="Correo Electrónico"
+          [required]="true"
+          [errorMessage]="errors()['email']"
+          hint="Si cambias el correo, te enviaremos un código de 4 dígitos para verificarlo antes de guardar."
+        >
+          <app-input type="email" placeholder="correo@empresa.com" [value]="email()" (valueChange)="updateField('email', $event)" />
+        </app-form-field>
+
+        <!-- Cambio de contraseña (opcional) -->
+        <label class="flex items-center gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+          <input
+            type="checkbox"
+            class="h-4 w-4 accent-indigo-600"
+            [checked]="changePassword()"
+            (change)="changePassword.set($any($event.target).checked)"
+          />
+          <span class="text-xs font-semibold text-slate-700">Cambiar mi contraseña</span>
+        </label>
+
+        @if (changePassword()) {
+          <div class="space-y-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+            <app-form-field label="Contraseña Actual" [required]="true" [errorMessage]="errors()['currentPassword']">
+              <app-password-input [value]="currentPassword()" (valueChange)="updateField('currentPassword', $event)" id="profile-current-password" />
+            </app-form-field>
+
+            <app-form-field
+              label="Nueva Contraseña"
+              [required]="true"
+              [errorMessage]="errors()['newPassword']"
+              hint="Mínimo 8 caracteres, con una letra y un número"
+            >
+              <app-password-input [value]="newPassword()" (valueChange)="updateField('newPassword', $event)" id="profile-new-password" />
+            </app-form-field>
+
+            <app-form-field label="Confirmar Nueva Contraseña" [required]="true" [errorMessage]="errors()['confirmPassword']">
+              <app-password-input [value]="confirmPassword()" (valueChange)="updateField('confirmPassword', $event)" id="profile-confirm-password" />
+            </app-form-field>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <app-button variant="ghost" (clicked)="closed.emit()">Cancelar</app-button>
+        <app-button variant="primary" [loading]="loading()" [disabled]="!name().trim()" (clicked)="submit()">
+          {{ emailChanged() ? 'Continuar y verificar correo' : 'Guardar Cambios' }}
+        </app-button>
+      </div>
+    }
+
+    <!-- ═══════ PASO 2: CÓDIGO DE 4 DÍGITOS DEL NUEVO CORREO ═══════ -->
+    @if (step() === 'verify') {
+      @if (infoMessage()) {
+        <app-alert variant="info" title="Código enviado">{{ infoMessage() }} Tus cambios se guardarán al verificarlo.</app-alert>
+      }
+
+      <app-form-field label="Código de Verificación" [required]="true">
+        <input
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="4"
+          placeholder="0000"
+          [value]="code()"
+          (input)="onCodeInput($event)"
+          class="w-full px-3.5 py-3 text-center text-2xl font-mono tracking-[0.5em] bg-white border border-slate-300 rounded-lg shadow-sm placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
+        />
+      </app-form-field>
+
+      <div class="flex items-center justify-between text-xs">
+        <button type="button" (click)="step.set('form')" class="text-slate-500 hover:text-slate-700 underline cursor-pointer">
+          &larr; Volver a editar datos
+        </button>
+        <button
+          type="button"
+          (click)="requestCode(true)"
+          [disabled]="resending()"
+          class="font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer disabled:opacity-50"
+        >
+          {{ resending() ? 'Enviando...' : 'Reenviar código' }}
+        </button>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <app-button variant="ghost" (clicked)="closed.emit()">Cancelar</app-button>
+        <app-button variant="primary" [loading]="loading()" [disabled]="code().length !== 4" (clicked)="save()">
+          Verificar y Guardar
+        </app-button>
+      </div>
+    }
+  </div>
+</div>

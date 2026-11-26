@@ -18,4 +18,5 @@ export class UserTableComponent {
   deleteUser = output<User>();
   /** Envía el correo de activación (solo cuentas inactivas). */
   activateUser = output<User>();
+  permanentDeleteUser = output<User>();
 }

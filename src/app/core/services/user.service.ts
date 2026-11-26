@@ -305,4 +305,38 @@ export class UserService {
         finalize(() => this.loadingSignal.set(false))
       );
   }
+
+  /**
+   * DELETE /api/v1/users/:id/permanent
+   * Elimina permanentemente un usuario de la base de datos.
+   * Retorna 204 No Content.
+   */
+  permanentDeleteUser(id: number): Observable<void> {
+    this.clearError();
+    this.loadingSignal.set(true);
+
+    return this.http
+      .delete<void>(`${this.apiUrl}/${id}/permanent`, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        tap(() => {
+          // Quitar definitivamente el usuario de la lista local
+          this.usersSignal.update((users) => users.filter((u) => u.id !== id));
+        }),
+        catchError((error) => {
+          const message =
+            error.status === 404
+              ? `Usuario con ID ${id} no encontrado.`
+              : error.status === 403
+                ? 'No tienes permisos para eliminar permanentemente usuarios.'
+                : error.error?.message ||
+                  'Error al eliminar permanentemente el usuario.';
+          this.errorSignal.set(message);
+          console.error('[UserService] Error permanentDeleteUser:', error);
+          return throwError(() => new Error(message));
+        }),
+        finalize(() => this.loadingSignal.set(false))
+      );
+  }
 }

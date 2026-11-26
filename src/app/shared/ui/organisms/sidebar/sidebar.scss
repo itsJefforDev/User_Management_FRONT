@@ -1,0 +1,4 @@
+/* El host no genera caja: el <aside> participa directamente en el flex del layout (necesario para sticky) */
+:host {
+  display: contents;
+}
