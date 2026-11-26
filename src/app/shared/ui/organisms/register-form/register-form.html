@@ -2,7 +2,7 @@
   <!-- Molecule: Auth Header -->
   <app-auth-header
     [title]="isVerificationStep() ? 'Verifica tu Correo' : 'Crea tu Cuenta'"
-    [subtitle]="isVerificationStep() ? 'Activa tu cuenta con el código recibido' : 'Ingresa tus datos para registrarte en la plataforma'"
+    [subtitle]="isVerificationStep() ? 'Activa tu cuenta con el código de 4 dígitos recibido' : 'Ingresa tus datos para registrarte en la plataforma'"
   />
 
   <!-- Alert feedback -->
@@ -90,52 +90,61 @@
     </form>
   }
 
-  <!-- ================= ETAPA 2: VALIDACIÓN DE CORREO Y ACTIVACIÓN ================= -->
+  <!-- ================= ETAPA 2: CÓDIGO DE 4 DÍGITOS ================= -->
   @if (isVerificationStep()) {
     <div class="space-y-5">
-      <app-alert variant="info" title="Correo de activación enviado">
-        Se ha enviado un mensaje con el token de activación a
+      <app-alert variant="info" title="Código enviado">
+        Enviamos un código de 4 dígitos a
         <strong class="font-semibold text-sky-950">{{ formData().email }}</strong>.
-        La cuenta se encuentra en estado inactivo hasta su verificación.
+        La cuenta permanece inactiva hasta que lo ingreses.
       </app-alert>
 
       <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-        <p class="text-xs text-slate-600">
-          Ingresa el token de verificación que recibiste por correo para activar tu cuenta de inmediato:
-        </p>
-
         <app-form-field
-          label="Token de Activación"
+          label="Código de Verificación"
           [required]="true"
-          [errorMessage]="tokenError()"
+          [errorMessage]="codeError()"
         >
-          <app-input
-            [value]="activationToken()"
-            (valueChange)="activationToken.set($event)"
-            placeholder="Ej: d8a9f24b-32c1-4b77..."
-            id="activation-token"
+          <input
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="4"
+            placeholder="0000"
+            [value]="activationCode()"
+            (input)="onCodeInput($event)"
+            id="activation-code"
+            class="w-full px-3.5 py-3 text-center text-2xl font-mono tracking-[0.5em] bg-white border border-slate-300 rounded-lg shadow-sm placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
           />
         </app-form-field>
 
         <app-button
           type="button"
           variant="primary"
-          [loading]="verifyingToken()"
-          [disabled]="!activationToken()"
-          (clicked)="handleVerifyAccount()"
+          [loading]="verifyingCode()"
+          [disabled]="activationCode().length !== 4"
+          (clicked)="handleVerifyCode()"
           customClass="w-full"
         >
-          Activar y Validar Cuenta
+          Activar Cuenta
         </app-button>
       </div>
 
-      <div class="text-center">
+      <div class="flex items-center justify-between text-xs">
         <button
           type="button"
           (click)="isVerificationStep.set(false)"
-          class="text-xs text-slate-500 hover:text-slate-700 underline cursor-pointer"
+          class="text-slate-500 hover:text-slate-700 underline cursor-pointer"
         >
           &larr; Volver a editar datos
+        </button>
+        <button
+          type="button"
+          (click)="handleResendCode()"
+          [disabled]="resendingCode()"
+          class="font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer disabled:opacity-50"
+        >
+          {{ resendingCode() ? 'Enviando...' : 'Reenviar código' }}
         </button>
       </div>
     </div>

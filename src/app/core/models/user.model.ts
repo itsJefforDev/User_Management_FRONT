@@ -20,17 +20,20 @@ export interface User {
   status: UserStatus;
   failedLoginAttempts?: number;
   roles: string[];        // Ej: ['ROLE_USER'], ['ADMIN', 'ROLE_USER']
+  mustChangePassword?: boolean;          // Tiene una contraseña temporal pendiente de cambio
+  temporaryPasswordExpiresAt?: string;   // Vencimiento de la contraseña temporal (ISO)
   createdAt?: string;     // ISO timestamp del backend
   updatedAt?: string;     // ISO timestamp del backend
   avatarUrl?: string;     // Para uso local en la UI (no viene del backend)
 }
 
-// ─── Request para crear usuario (Admin lo crea ACTIVO) ──────────────
+// ─── Request para crear usuario (Admin lo crea INACTIVO con contraseña temporal) ───
 export interface CreateUserRequest {
   name: string;
   email: string;
-  password: string;
-  roles?: string[];       // Opcional: si no se envía, el backend asigna ROLE_USER
+  password: string;                  // Contraseña temporal de 8 dígitos
+  roles?: string[];                  // Opcional: si no se envía, el backend asigna ROLE_USER
+  temporaryPasswordHours?: number;   // Vigencia de la contraseña temporal (1-720)
 }
 
 // ─── Request para actualizar usuario ────────────────────────────────
@@ -38,6 +41,8 @@ export interface UpdateUserRequest {
   name?: string;
   status?: UserStatus;
   roles?: string[];
+  password?: string;                 // Opcional: nueva contraseña temporal (8 dígitos)
+  temporaryPasswordHours?: number;
 }
 
 // ─── Helper: obtener el rol principal para mostrar en la UI ─────────

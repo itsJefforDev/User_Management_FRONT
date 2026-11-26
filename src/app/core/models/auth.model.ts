@@ -6,7 +6,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
+  token?: string; // No viene cuando mustChangePassword es true (no se abre sesión)
   type?: string;
   role?: Role[] | any;
   email?: string;
@@ -14,6 +14,8 @@ export interface LoginResponse {
   userId?: number;
   message?: string;
   status?: string;
+  /** true si ingresó con una contraseña temporal vigente y debe cambiarla. */
+  mustChangePassword?: boolean;
 
   user?: {
     id?: number | string;
@@ -43,4 +45,9 @@ export interface CheckEmailResponse {
   exists: boolean;
   role?: string;
   name?: string;
+}
+
+/** Respuesta simple del backend: { message } */
+export interface MessageResponse {
+  message: string;
 }

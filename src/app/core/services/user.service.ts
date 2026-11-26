@@ -1,12 +1,13 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, tap, finalize } from 'rxjs/operators';
+import { catchError, map, tap, finalize } from 'rxjs/operators';
 import {
   User,
   CreateUserRequest,
   UpdateUserRequest,
 } from '../models/user.model';
+import { MessageResponse } from '../models/auth.model';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -85,6 +86,12 @@ export class UserService {
     this.errorSignal.set(null);
   }
 
+  /** Contraseña temporal aleatoria de 8 dígitos (solo para el modo demo sin backend). */
+  private randomTemporaryPassword(): string {
+    const value = crypto.getRandomValues(new Uint32Array(1))[0] % 100_000_000;
+    return String(value).padStart(8, '0');
+  }
+
   // Búsqueda local
 
   setSearchQuery(query: string) {
@@ -152,9 +159,51 @@ export class UserService {
   }
 
   /**
+   * GET /api/v1/users/temporary-password
+   * Genera una contraseña temporal aleatoria de 8 dígitos (botón "Generar" del admin).
+   */
+  generateTemporaryPassword(): Observable<string> {
+    return this.http
+      .get<{ password: string }>(`${this.apiUrl}/temporary-password`, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        map((res) => res.password),
+        catchError((error) => {
+          // Sin conexión al backend: se genera localmente para poder probar la UI
+          if (error.status === 0) return of(this.randomTemporaryPassword());
+          return throwError(
+            () => new Error(error.error?.message || 'No se pudo generar la contraseña temporal.')
+          );
+        })
+      );
+  }
+
+  /**
+   * POST /api/v1/users/:id/send-activation
+   * Envía al usuario el correo de activación por enlace.
+   */
+  sendActivationEmail(id: number): Observable<string> {
+    return this.http
+      .post<MessageResponse>(`${this.apiUrl}/${id}/send-activation`, {}, {
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(
+        map((res) => res.message),
+        catchError((error) => {
+          const message =
+            error.status === 0
+              ? 'No se pudo conectar con el servidor para enviar el correo.'
+              : error.error?.message || 'No se pudo enviar el correo de activación.';
+          return throwError(() => new Error(message));
+        })
+      );
+  }
+
+  /**
    * POST /api/v1/users
-   * Crea un nuevo usuario (por el administrador → estado ACTIVE).
-   * El backend recibe: { name, email, password, roles? }
+   * Crea un nuevo usuario (por el administrador → estado INACTIVE con contraseña temporal).
+   * El backend recibe: { name, email, password, roles?, temporaryPasswordHours? }
    */
   createUser(request: CreateUserRequest): Observable<User> {
     this.clearError();
@@ -188,7 +237,7 @@ export class UserService {
   /**
    * PUT /api/v1/users/:id
    * Actualiza un usuario existente.
-   * El backend recibe: { name?, status?, roles? }
+   * El backend recibe: { name?, status?, roles?, password?, temporaryPasswordHours? }
    */
   updateUser(id: number, request: UpdateUserRequest): Observable<User> {
     this.clearError();

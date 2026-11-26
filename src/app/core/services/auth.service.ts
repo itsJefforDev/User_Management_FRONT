@@ -1,8 +1,14 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
-import { LoginRequest, LoginResponse, CreateUserRequest, UserResponse } from '../models/auth.model';
+import { catchError, tap } from 'rxjs/operators';
+import {
+  LoginRequest,
+  LoginResponse,
+  CreateUserRequest,
+  UserResponse,
+  MessageResponse,
+} from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -52,6 +58,11 @@ export class AuthService {
     ['user@empresa.com', { role: 'ROLE_USER', name: 'Usuario Estándar' }],
   ]);
 
+  /** true solo cuando el backend no es alcanzable (modo demo local). */
+  private isOffline(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && error.status === 0;
+  }
+
   /**
    * Identifica si el correo electrónico existe en el sistema.
    * Consume el endpoint GET /api/v1/auth/check-email?email=... del backend Spring Boot,
@@ -74,35 +85,30 @@ export class AuthService {
 
   /**
    * Inicia sesión con email y contraseña.
+   * Si el backend responde mustChangePassword = true (contraseña temporal vigente)
+   * NO se abre sesión: el formulario de login debe forzar el cambio de contraseña.
+   * Si la temporal venció, el backend responde 403 con code = PASSWORD_EXPIRED.
    */
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
-      // catchError((error) => {
-      //   // Fallback para modo offline/demo local si el backend no responde
-      //   const normalizedEmail = request.email.trim().toLowerCase();
-      //   if (this.knownUsers.has(normalizedEmail) && request.password) {
-      //     const userMeta = this.knownUsers.get(normalizedEmail)!;
-      //     const mockResponse: LoginResponse = {
-      //       token: 'mock-jwt-token-' + Date.now(),
-      //       role: userMeta.role,
-      //       email: normalizedEmail,
-      //       name: userMeta.name,
-      //     };
-      //     return of(mockResponse);
-      //   }
-      //   return throwError(() => error);
-      // }),
-      tap((response) => this.handleAuthSuccess(response)),
+      tap((response) => {
+        if (response.token && !response.mustChangePassword) {
+          this.handleAuthSuccess(response);
+        }
+      }),
     );
   }
 
   /**
    * Registro de nuevo usuario (estado INACTIVE).
+   * El backend envía un código de 4 dígitos al correo.
    */
   register(request: CreateUserRequest): Observable<UserResponse> {
     return this.http.post<UserResponse>(`${this.apiUrl}/register`, request).pipe(
       catchError((error) => {
-        // Fallback en modo local
+        // El fallback local solo aplica sin conexión; los errores reales (ej. correo duplicado) se propagan
+        if (!this.isOffline(error)) return throwError(() => error);
+
         const normalizedEmail = request.email.trim().toLowerCase();
         this.knownUsers.set(normalizedEmail, {
           role: 'ROLE_USER',
@@ -127,7 +133,8 @@ export class AuthService {
   }
 
   /**
-   * Activa la cuenta mediante el token recibido por correo electrónico.
+   * Activa la cuenta mediante el token (enlace) recibido por correo electrónico.
+   * Flujo de cuentas creadas por el administrador.
    */
   verifyAccount(token: string): Observable<string> {
     return this.http
@@ -143,6 +150,57 @@ export class AuthService {
           return throwError(() => new Error('Token de verificación inválido o expirado'));
         }),
       );
+  }
+
+  /** Activa la cuenta con el código de 4 dígitos enviado al correo (auto-registro). */
+  verifyCode(email: string, code: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/verify-code`, { email, code }).pipe(
+      catchError((error) => {
+        // Demo local sin backend: acepta cualquier código de 4 dígitos
+        if (this.isOffline(error) && /^\d{4}$/.test(code)) {
+          return of({ message: 'Cuenta activada exitosamente' });
+        }
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  /** Solicita un nuevo código de 4 dígitos. */
+  resendCode(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/resend-code`, { email }).pipe(
+      catchError((error) =>
+        this.isOffline(error)
+          ? of({ message: 'Código reenviado (modo local)' })
+          : throwError(() => error),
+      ),
+    );
+  }
+
+  /** Recordatorio de contraseña: el backend envía una contraseña temporal de 8 dígitos al correo. */
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/forgot-password`, { email }).pipe(
+      catchError((error) =>
+        this.isOffline(error)
+          ? of({ message: 'Si el correo está registrado, enviamos una contraseña temporal.' })
+          : throwError(() => error),
+      ),
+    );
+  }
+
+  /**
+   * Cambia la contraseña. currentPassword puede ser la temporal (incluso vencida);
+   * este endpoint no abre sesión: después se debe iniciar sesión con la nueva contraseña.
+   */
+  changePassword(
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/change-password`, {
+      email,
+      currentPassword,
+      newPassword,
+    });
   }
 
   updateUserProfile(updates: { name: string; email?: string }) {
@@ -176,6 +234,7 @@ export class AuthService {
   }
 
   private handleAuthSuccess(response: LoginResponse) {
+    if (!response.token) return;
     this.token.set(response.token);
     this.currentUser.set(response);
     if (typeof localStorage !== 'undefined') {

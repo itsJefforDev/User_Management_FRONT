@@ -12,6 +12,13 @@
     </app-alert>
   }
 
+  <!-- Alert: Información (contraseña temporal enviada, contraseña actualizada) -->
+  @if (infoMessage()) {
+    <app-alert variant="info" [dismissible]="true" (dismissed)="infoMessage.set(null)">
+      {{ infoMessage() }}
+    </app-alert>
+  }
+
   <!-- ================= STEP 1: SOLICITAR EMAIL ================= -->
   @if (step() === 'email') {
     <form (submit)="handleEmailSubmit($event)" class="space-y-4">
@@ -43,30 +50,20 @@
     </form>
   }
 
-  <!-- ================= EMAIL NO ENCONTRADO: OFRECER REGISTRO ================= -->
+  <!-- ================= EMAIL NO ENCONTRADO 3 VECES: OFRECER REGISTRO ================= -->
   @if (step() === 'not-found') {
     <div class="space-y-5">
       <app-alert variant="warning" title="Correo no registrado">
-        El correo <strong class="font-semibold text-amber-900">{{ email() }}</strong> no se encuentra en el sistema.
-        ¿Deseas crear una cuenta nueva con este correo?
+        No encontramos ninguna cuenta con los correos ingresados. ¿Deseas crear una cuenta nueva con
+        <strong class="font-semibold text-amber-900">{{ email() }}</strong>?
       </app-alert>
 
       <div class="space-y-2.5">
-        <app-button
-          type="button"
-          variant="primary"
-          (clicked)="proceedToRegister()"
-          customClass="w-full"
-        >
+        <app-button type="button" variant="primary" (clicked)="proceedToRegister()" customClass="w-full">
           Sí, crear una cuenta
         </app-button>
 
-        <app-button
-          type="button"
-          variant="ghost"
-          (clicked)="resetToEmailStep()"
-          customClass="w-full"
-        >
+        <app-button type="button" variant="ghost" (clicked)="resetToEmailStep()" customClass="w-full">
           Intentar con otro correo
         </app-button>
       </div>
@@ -93,17 +90,24 @@
         </button>
       </div>
 
-      <app-form-field
-        label="Contraseña"
-        [required]="true"
-        [errorMessage]="passwordError()"
-      >
+      <app-form-field label="Contraseña" [required]="true" [errorMessage]="passwordError()">
         <app-password-input
           [value]="password()"
           (valueChange)="onPasswordChange($event)"
           id="login-password"
         />
       </app-form-field>
+
+      <!-- Recordatorio de contraseña -->
+      <div class="text-right -mt-2">
+        <button
+          type="button"
+          (click)="openForgot()"
+          class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
 
       <app-button
         type="submit"
@@ -117,17 +121,85 @@
     </form>
   }
 
+  <!-- ================= RECORDATORIO DE CONTRASEÑA ================= -->
+  @if (step() === 'forgot') {
+    <div class="space-y-5">
+      <app-alert variant="info" title="Contraseña temporal por correo">
+        Enviaremos una contraseña temporal de 8 dígitos a
+        <strong class="font-semibold text-sky-950">{{ email() }}</strong>.
+        Al ingresar con ella deberás crear una nueva contraseña.
+      </app-alert>
+
+      <div class="space-y-2.5">
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="loading()"
+          (clicked)="sendTemporaryPassword()"
+          customClass="w-full"
+        >
+          Enviar contraseña temporal
+        </app-button>
+
+        <app-button type="button" variant="ghost" (clicked)="step.set('password')" customClass="w-full">
+          Volver
+        </app-button>
+      </div>
+    </div>
+  }
+
+  <!-- ================= CAMBIO OBLIGATORIO: TEMPORAL VIGENTE (FORMULARIO) ================= -->
+  @if (step() === 'change-password' && changeReason() === 'required') {
+    <div class="space-y-4">
+      <app-alert variant="info" title="Cambio de contraseña obligatorio">
+        Ingresaste con una contraseña temporal. Por seguridad, define una nueva contraseña para continuar.
+      </app-alert>
+
+      <app-change-password-form
+        [email]="email()"
+        [currentPassword]="password()"
+        (passwordChanged)="onPasswordChanged($event)"
+        (cancelled)="resetToEmailStep()"
+      />
+    </div>
+  }
+
+  <!-- ================= CAMBIO OBLIGATORIO: TEMPORAL VENCIDA (MODAL) =================
+       <dialog> nativo: no se puede cerrar con Esc, el usuario debe cambiar la contraseña. -->
+  <dialog
+    #expiredDialog
+    (cancel)="$event.preventDefault()"
+    class="m-auto w-full max-w-md rounded-2xl p-0 border border-slate-100 shadow-2xl backdrop:bg-slate-900/50"
+  >
+    @if (step() === 'change-password' && changeReason() === 'expired') {
+      <div class="p-6 space-y-4">
+        <app-alert variant="warning" title="Tu contraseña temporal venció">
+          La contraseña que ingresaste ya no está vigente. Debes establecer una nueva contraseña para poder ingresar.
+        </app-alert>
+
+        <app-change-password-form
+          [email]="email()"
+          [currentPassword]="password()"
+          (passwordChanged)="onPasswordChanged($event)"
+          (cancelled)="resetToEmailStep()"
+        />
+      </div>
+    }
+  </dialog>
+
   <!-- Footer link to register directly -->
-  <div class="text-center pt-2 border-t border-slate-100">
-    <p class="text-xs text-slate-500">
-      ¿No tienes una cuenta?
-      <button
-        type="button"
-        (click)="goToRegister.emit(email())"
-        class="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer ml-1"
-      >
-        Regístrate aquí
-      </button>
-    </p>
-  </div>
+  @if (step() !== 'change-password') {
+    <div class="text-center pt-2 border-t border-slate-100">
+      <p class="text-xs text-slate-500">
+        ¿No tienes una cuenta?
+        <button
+          type="button"
+          (click)="goToRegister.emit(email())"
+          class="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer ml-1"
+        >
+          Regístrate aquí
+        </button>
+      </p>
+    </div>
+  }
 </div>
